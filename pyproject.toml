@@ -1,16 +1,14 @@
-[project]
+[tool.poetry]
 name = "openclassrooms-projet-12"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "devexplorer",email = "contact@devexplorer.fr"}
-]
+authors = ["devexplorer <contact@devexplorer.fr>"]
 readme = "README.md"
-requires-python = ">=3.11"
-dependencies = [
-]
+package-mode = false
 
+[tool.poetry.dependencies]
+python = "^3.11"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
