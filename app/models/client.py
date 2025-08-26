@@ -24,12 +24,6 @@ class Client(Base, DateTracked):
     # Relation avec la class Contract
     contracts = relationship(Contract, back_populates="client")
 
-    def __repr__(self):
-        return f"Client(id={self.id}, name='{self.name}', company='{self.company_name}')"
-
-    def __str__(self):
-        return f"{self.name} - {self.company_name}"
-
     @classmethod
     def create(cls, role, **kwargs):
         # Création après validation
