@@ -36,6 +36,9 @@ class Client(Base, DateTracked):
         session = db_manager.get_session()
 
         try:
+            if not kwargs.get('name') or kwargs.get('name').strip() == '':
+                raise ValueError("Le nom du client est obligatoire")
+
             # Validation des formats du mail et du téléphone
             if 'mail' in kwargs:
                 validate_email(kwargs['mail'])
@@ -53,17 +56,11 @@ class Client(Base, DateTracked):
                     raise ValueError(f"Le client avec l'email '{kwargs['mail']}' existe déjà")
 
             client = cls(**kwargs)
-            print(client)
             session.add(client)
             session.commit()
             session.refresh(client)
             return client
-        except TypeError as e:
-            print(f"❌ Erreur de type : {e}")
-            session.rollback()
-            raise e
-        except ValueError as e:
-            return f"❌ {e}"
+
         except Exception as e:
             session.rollback()
             raise e
