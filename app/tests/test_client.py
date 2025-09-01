@@ -34,6 +34,8 @@ INVALID_PHONES = [
     "None"
 ]
 
+# TEST CREATE METHODS
+
 # TEST ROLE
 @pytest.mark.parametrize("role", VALID_ROLES)
 def test_create_valid_roles(role, test_db):
@@ -139,3 +141,57 @@ def test_create_invalid_phones(phone, test_db):
             phone=phone,
             mail="test@email.com"
         )
+
+
+# TEST READ METHODS
+
+def test_get_all_clients(test_db):
+    """Test : récupérer tous les clients"""
+    # Créer quelques clients
+    Client.create(role="commercial", name="Client1", mail="client1@test.com")
+    Client.create(role="commercial", name="Client2", mail="client2@test.com")
+
+    # Récupérer tous les clients
+    clients = Client.get_all()
+
+    assert len(clients) == 2
+    assert clients[0].name == "Client1"
+    assert clients[1].name == "Client2"
+
+def test_get_all_clients_empty(test_db):
+    """Test : récupérer tous les clients quand la table est vide"""
+    clients = Client.get_all()
+    assert len(clients) == 0
+
+def test_get_by_id_success(test_db):
+    """Test : récupérer un client par ID existant"""
+    created_client = Client.create(role="commercial", name="Jean", mail="jean@test.com")
+
+    found_client = Client.get_by_id(created_client.id)
+
+    assert found_client.id == created_client.id
+    assert found_client.name == "Jean"
+    assert found_client.mail == "jean@test.com"
+
+def test_get_by_id_not_found(test_db):
+    """Test : récupérer un client par ID inexistant"""
+    with pytest.raises(ValueError) as exc_info:
+        Client.get_by_id(999)
+
+    assert "Client avec l'ID 999 introuvable" in str(exc_info.value)
+
+def test_get_by_email_success(test_db):
+    """Test : récupérer un client par email existant"""
+    Client.create(role="commercial", name="Marie", mail="marie@test.com")
+
+    found_client = Client.get_by_email("marie@test.com")
+
+    assert found_client.name == "Marie"
+    assert found_client.mail == "marie@test.com"
+
+def test_get_by_email_not_found(test_db):
+    """Test : récupérer un client par email inexistant"""
+    with pytest.raises(ValueError) as exc_info:
+        Client.get_by_email("inexistant@test.com")
+
+    assert "Client avec l'email 'inexistant@test.com' introuvable" in str(exc_info.value)
