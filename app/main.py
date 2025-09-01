@@ -10,12 +10,19 @@ def check_and_create_database():
         db_manager.create_tables()
         print("✅ Base de données initialisée !")
     else:
-        print('La Base de données a déjà été initialisé')
 
         client = Client()
-        print(client.create(name="Dupont", mail="dupont@email.com", company_name="ACME Corp", role="commercial"))
+        # print(client.create(name="Dupont", mail="dupont@email.com", company_name="ACME Corp", role="commercial"))
 
-        ## ERREUR À gérer
+        clients = Client.get_all()
+        for client in clients:
+            print(client)
+            print('------------------------------------')
+            print('------------------------------------')
+
+
+
+            ## ERREUR À gérer
         # si email client existe déja
         # champs qui peuvent etre vide a verifier
 

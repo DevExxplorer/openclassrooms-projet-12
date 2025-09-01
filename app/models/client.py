@@ -24,9 +24,19 @@ class Client(Base, DateTracked):
     # Relation avec la class Contract
     contracts = relationship(Contract, back_populates="client")
 
+    def __repr__(self): # pragma: no cover
+        return f"Client(id={self.id}, name='{self.name}', email='{self.mail}', company='{self.company_name}')"
+
+    def __str__(self): # pragma: no cover
+        created_str = self.created_at.strftime('%d/%m/%Y à %H:%M')
+        updated_str = self.last_updated_at.strftime('%d/%m/%Y à %H:%M') if self.last_updated_at else 'Jamais modifié'
+        return f"({self.id}) - {self.name} ({self.mail}) - {self.company_name}\nCréé: {created_str} | Modifié: {updated_str}"
+
     @classmethod
     def create(cls, role, **kwargs):
-        # Création après validation
+        """
+         Création du client après validation des champs
+         """
         session = db_manager.get_session()
 
         try:
@@ -55,6 +65,61 @@ class Client(Base, DateTracked):
             session.refresh(client)
             return client
 
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    @classmethod
+    def get_all(cls, role=None):
+        """
+        Récupérer tous les clients
+        Accessible à tous les rôles selon le cahier des charges
+        """
+        session = db_manager.get_session()
+
+        try:
+            clients = session.query(cls).all()
+            return clients
+        except Exception as e: # pragma: no cover
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    @classmethod
+    def get_by_id(cls, client_id, role=None):
+        """
+        Récupérer un client par son ID
+        Accessible à tous les rôles
+        """
+        session = db_manager.get_session()
+
+        try:
+            client = session.query(cls).filter(cls.id == client_id).first()
+            if not client:
+                raise ValueError(f"Client avec l'ID {client_id} introuvable")
+            return client
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    @classmethod
+    def get_by_email(cls, email, role=None):
+        """
+        Récupérer un client par son email
+        Accessible à tous les rôles
+        """
+        session = db_manager.get_session()
+
+        try:
+            client = session.query(cls).filter(cls.mail == email).first()
+            if not client:
+                raise ValueError(f"Client avec l'email '{email}' introuvable")
+            return client
         except Exception as e:
             session.rollback()
             raise e
