@@ -13,6 +13,7 @@ python-dotenv = "^1.1.1"
 sqlalchemy = "^2.0.43"
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
+argon2-cffi = "^25.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
