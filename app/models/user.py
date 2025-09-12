@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database.db import Base, db_manager
-from app.models import DateTracked
+from app.models.date_tracked import DateTracked
 from app.models.department import Department
 
 
@@ -20,20 +20,20 @@ class User(Base, DateTracked):
 
     # Department
     department_id = Column(Integer, ForeignKey('departments.id'))
-    department = relationship("Department", back_populates="users")
+    department = relationship("app.models.department.Department", back_populates="users")
 
     # Pour l'authentification
     username = Column(String(100), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
 
     # Un commercial peut avoir plusieurs clients
-    clients = relationship("Client", back_populates="commercial_contact")
+    clients = relationship("app.models.client.Client", back_populates="commercial_contact")
 
     # Un commercial peut avoir plusieurs contrats
-    contracts = relationship("Contract", back_populates="commercial_contact")
+    contracts = relationship("app.models.contract.Contract", back_populates="commercial_contact")
 
     # Un membre du support peut avoir plusieurs événements assignés
-    events = relationship("Event", back_populates="support_contact")
+    events = relationship("app.models.event.Event", back_populates="support_contact")
 
     def __repr__(self): # pragma: no cover
         return f"Client(id={self.id}, employee_number='{self.employee_number}', name='{self.name}', mail='{self.mail}', department='{self.department}')"

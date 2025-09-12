@@ -2,9 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database.db import Base, db_manager
-from app.models.contract import Contract
 from app.models.date_tracked import DateTracked
-from app.models.user import User
 from app.utils.validators import validate_email, validate_tel
 
 
@@ -19,10 +17,10 @@ class Client(Base, DateTracked):
 
     # Relation avec la class User (Equipe commercial)
     commercial_contact_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    commercial_contact = relationship(User, back_populates="clients")
+    commercial_contact = relationship("app.models.user.User", back_populates="clients")
 
     # Relation avec la class Contract
-    contracts = relationship(Contract, back_populates="client")
+    contracts = relationship("app.models.contract.Contract", back_populates="client")
 
     def __repr__(self): # pragma: no cover
         return f"Client(id={self.id}, name='{self.name}', email='{self.mail}', company='{self.company_name}')"
@@ -34,9 +32,7 @@ class Client(Base, DateTracked):
 
     @classmethod
     def create(cls, role, **kwargs):
-        """
-         Création du client après validation des champs
-         """
+        """Création du client après validation des champs"""
         session = db_manager.get_session()
 
         try:
@@ -72,7 +68,7 @@ class Client(Base, DateTracked):
             session.close()
 
     @classmethod
-    def get_all(cls, role=None):
+    def get_all(cls):
         """
         Récupérer tous les clients
         Accessible à tous les rôles selon le cahier des charges
@@ -89,7 +85,7 @@ class Client(Base, DateTracked):
             session.close()
 
     @classmethod
-    def get_by_id(cls, client_id, role=None):
+    def get_by_id(cls, client_id):
         """
         Récupérer un client par son ID
         Accessible à tous les rôles
@@ -108,7 +104,7 @@ class Client(Base, DateTracked):
             session.close()
 
     @classmethod
-    def get_by_email(cls, email, role=None):
+    def get_by_email(cls, email):
         """
         Récupérer un client par son email
         Accessible à tous les rôles

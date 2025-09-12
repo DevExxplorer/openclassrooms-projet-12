@@ -13,7 +13,7 @@ class Event(Base, DateTracked):
 
     # Relation avec la class Contract
     contract_id = Column(Integer, ForeignKey('contracts.id'), nullable=False)
-    contract = relationship("Contract", back_populates="events")
+    contract = relationship("app.models.contract.Contract", back_populates="events")
 
     # Date de l'événement
     date_start = Column(DateTime, nullable=False)
@@ -21,7 +21,7 @@ class Event(Base, DateTracked):
 
     # Relation avec la class User
     support_contact_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    support_contact = relationship("User", back_populates="events")
+    support_contact = relationship("app.models.user.User", back_populates="events")
 
     # Détails de l'évenement
     location = Column(Text, nullable=False)

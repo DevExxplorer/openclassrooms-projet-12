@@ -12,7 +12,7 @@ class Department(Base):
     description = Column(String(255))
 
     # Relations
-    users = relationship("User", back_populates="department")
+    users = relationship("app.models.user.User", back_populates="department")
 
     @classmethod
     def create(cls, **kwargs):
