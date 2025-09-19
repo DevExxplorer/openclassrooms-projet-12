@@ -30,3 +30,21 @@ def test_create_department_missing_name(test_db):
         Department.create(description="Test sans nom")
 
     assert "Le nom du département est obligatoire" in str(exc_info.value)
+
+def test_get_department_with_existing_id(test_db):
+    # Maintenant vous pouvez créer sans conflit
+    dept = Department.create(name="gestion", description="Test")
+    
+    result = Department.get_department_with_id(dept.id)
+    assert result == "gestion"
+
+
+def test_get_department_with_nonexistent_id():
+    result = Department.get_department_with_id(99999)  # ID qui n'existe pas
+    
+    assert result is None
+
+def test_get_department_with_none_id():
+    result = Department.get_department_with_id(None)
+    
+    assert result is None
