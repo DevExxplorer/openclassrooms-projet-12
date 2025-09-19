@@ -352,3 +352,17 @@ def test_get_all_users_with_data(test_db):
     assert len(users) == 2
     assert users[0].name == "User 1"
     assert users[1].name == "User 2"
+
+# Test department
+def test_department_name_with_department():
+    user = User()
+    user.department = Department()
+    user.department.name = "gestion"
+    
+    assert user.department_name == "gestion"
+
+def test_department_name_without_department():
+    user = User()
+    user.department = None
+    
+    assert user.department_name is None

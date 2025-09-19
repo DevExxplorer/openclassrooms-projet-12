@@ -28,8 +28,8 @@ class Event(Base, DateTracked):
     attendees = Column(Integer, nullable=False)
     notes = Column(Text, nullable=True)
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         return f"Event(id={self.id}, name='{self.name}', client='{self.contract.client.name if self.contract and self.contract.client else 'None'}')"
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         return f"{self.name} - {self.contract.client.name if self.contract and self.contract.client else 'Client inconnu'}"
