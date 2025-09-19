@@ -36,3 +36,13 @@ class Department(Base):
             raise e
         finally:
             session.close()
+
+    @classmethod
+    def get_department_with_id(cls, department_id):
+        """Récupère le nom du département via son ID"""
+        session = db_manager.get_session()
+        try:
+            dept = session.query(cls).filter(cls.id == department_id).first()
+            return dept.name if dept else None
+        finally:
+            session.close()
