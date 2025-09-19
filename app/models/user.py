@@ -211,3 +211,8 @@ class User(Base, DateTracked):
 
         finally:
             session.close()
+
+    @property
+    def department_name(self):
+        """Récupère le nom du département"""
+        return self.department.name if self.department else None
