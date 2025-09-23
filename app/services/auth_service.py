@@ -2,6 +2,7 @@ import getpass
 from rich.console import Console
 from app.models.user import User
 
+
 class AuthService:
     def __init__(self, console=None):
         self.console = console or Console()

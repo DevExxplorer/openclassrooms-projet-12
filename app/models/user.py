@@ -1,10 +1,8 @@
 import random
-
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-
 from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
 from app.models.department import Department
@@ -35,13 +33,23 @@ class User(Base, DateTracked):
     # Un membre du support peut avoir plusieurs événements assignés
     events = relationship("app.models.event.Event", back_populates="support_contact")
 
-    def __repr__(self): # pragma: no cover
-        return f"Client(id={self.id}, employee_number='{self.employee_number}', name='{self.name}', mail='{self.mail}', department='{self.department}')"
+    def __repr__(self):  # pragma: no cover
+        return (
+            f"Client(id={self.id}, "
+            f"employee_number='{self.employee_number}', "
+            f"name='{self.name}', "
+            f"mail='{self.mail}', "
+            f"department='{self.department}')"
+        )
 
-    def __str__(self): # pragma: no cover
+    def __str__(self):  # pragma: no cover
         created_str = self.created_at.strftime('%d/%m/%Y à %H:%M')
         updated_str = self.last_updated_at.strftime('%d/%m/%Y à %H:%M') if self.last_updated_at else 'Jamais modifié'
-        return f"Client(id={self.id}, employee_number='{self.employee_number}', name='{self.name}', mail='{self.mail}', department_id={self.department_id})\nCréé: {created_str} | Modifié: {updated_str}"
+        return (
+            f"Client(id={self.id}, employee_number='{self.employee_number}', "
+            f"name='{self.name}', mail='{self.mail}', department_id={self.department_id})\n"
+            f"Créé: {created_str} | Modifié: {updated_str}"
+        )
 
     @staticmethod
     def hash_password(password):
@@ -187,7 +195,7 @@ class User(Base, DateTracked):
         try:
             users = session.query(cls).all()
             return users
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             session.rollback()
             raise e
         finally:

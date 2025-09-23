@@ -31,7 +31,6 @@ class Initialization:
 
         return results
 
-
     @staticmethod
     def create_default_admin():
         """Créer l'administrateur par défaut"""
@@ -46,7 +45,6 @@ class Initialization:
             return admin, True
         except Exception as e:
             raise e
-
 
     @staticmethod
     def initialize_application():

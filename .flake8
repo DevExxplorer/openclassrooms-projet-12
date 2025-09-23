@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 150
+exclude = __pycache__,*.pyc,.git
+ignore = E203,W503
+per-file-ignores = 
+    __init__.py:F401,
+    app/tests/*:F841,
+    test_*.py:F841

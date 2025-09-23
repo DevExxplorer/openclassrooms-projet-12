@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 
 from app.database.db import Base, db_manager
 
+
 class Department(Base):
     DEPARTMENTS = ["commercial", "support", "gestion"]
     __tablename__ = 'departments'

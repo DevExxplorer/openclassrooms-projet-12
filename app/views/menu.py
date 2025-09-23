@@ -2,6 +2,7 @@ from rich.console import Console
 from rich.table import Table
 from app.utils.constants import MENU, SUBMENUS
 
+
 class MenuManager:
     def __init__(self):
         self.console = Console()
@@ -26,6 +27,7 @@ class MenuManager:
         """Vérifie si le choix est valide"""
         return any(item["option"] == choice for item in self.items)
 
+
 class Menu(MenuManager):
     """Classe pour les menus principaux"""
 
@@ -34,9 +36,10 @@ class Menu(MenuManager):
         self.department = department
         self.items = MENU[department]
 
+
 class Submenu(MenuManager):
     """Classe pour les sous-menus"""
-    
+
     def __init__(self, submenu_key):
         super().__init__()
         self.submenu_key = submenu_key

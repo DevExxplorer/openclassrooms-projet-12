@@ -8,12 +8,14 @@ from app.utils.constants import MESSAGES
 
 console = Console()
 
+
 def main_loop():
     """Boucle principale de l'application"""
     while True:
         result = show_menu()
         if result == "exit":
             break
+
 
 def show_menu():
     """Menu principal de l'application"""
@@ -25,7 +27,7 @@ def show_menu():
     if not user:
         console.print(MESSAGES["invalid_user"])
         return "continue"
-    
+
     console.print(f"[green]Connexion réussie ! Bienvenue {user.name}[/green]\n")
 
     # Navigation dans les menus
@@ -36,6 +38,7 @@ def show_menu():
             return "continue"
         elif result == "exit":
             return "exit"
+
 
 def initialize_database():
     """
@@ -52,8 +55,9 @@ def initialize_database():
             console.print(f"  - {error}")
         return False
 
-    console.print(f"\n[green]✓ Initialisation terminée avec succès ![/green]")
+    console.print("\n[green]✓ Initialisation terminée avec succès ![/green]")
     return True
+
 
 @click.command()
 @click.option('--dev-init', is_flag=True, hidden=True, help="[DEV] Initialiser la base de données")

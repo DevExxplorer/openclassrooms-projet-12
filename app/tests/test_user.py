@@ -5,6 +5,7 @@ from app.models.department import Department
 
 # Tests hash_password method
 
+
 def test_hash_password():
     """Test que le mot de passe est bien haché"""
     password = "monMotDePasse123!"
@@ -21,6 +22,7 @@ def test_hash_password():
     # Le hash doit commencer par $argon2 (signature Argon2)
     assert hashed.startswith("$argon2")
 
+
 def test_hash_password_different_salts():
     """Test que deux hachages du même mot de passe donnent des résultats différents (salt)"""
     password = "testPassword"
@@ -31,12 +33,14 @@ def test_hash_password_different_salts():
     # Les deux hashs doivent être différents (différents salts)
     assert hash1 != hash2
 
+
 def test_hash_empty_password():
     """Test hachage d'un mot de passe vide"""
     hash_empty = User.hash_password("")
 
     assert isinstance(hash_empty, str)
     assert len(hash_empty) > 0
+
 
 def test_verify_password_correct():
     """Test vérification d'un mot de passe correct"""
@@ -46,6 +50,7 @@ def test_verify_password_correct():
 
     # Le mot de passe correct doit être vérifié
     assert user.verify_password(password) is True
+
 
 def test_verify_password_incorrect():
     """Test vérification d'un mot de passe incorrect"""
@@ -57,13 +62,14 @@ def test_verify_password_incorrect():
 
 # Tests authenticate method
 
+
 def test_authenticate_success(test_db):
     """Test authentification réussie avec identifiants corrects"""
     # Créer un département
-    dept = Department.create(name="commercial", description="Équipe commerciale")
+    _dept = Department.create(name="commercial", description="Équipe commerciale")
 
     # Créer un utilisateur
-    user = User.create(
+    _user = User.create(
         employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
@@ -78,6 +84,7 @@ def test_authenticate_success(test_db):
     assert authenticated_user is not None
     assert authenticated_user.username == "jean.test"
     assert authenticated_user.name == "Jean Test"
+
 
 def test_authenticate_wrong_password(test_db):
     """Test authentification qui échoue avec mauvais mot de passe"""
@@ -98,6 +105,7 @@ def test_authenticate_wrong_password(test_db):
 
     assert authenticated_user is None
 
+
 def test_authenticate_wrong_username(test_db):
     """Test authentification qui échoue avec le mauvais nom d'utilisateur"""
 
@@ -117,17 +125,20 @@ def test_authenticate_wrong_username(test_db):
 
     assert authenticated_user is None
 
+
 def test_authenticate_user_not_exists(test_db):
     """Test authentification avec utilisateur qui n'existe pas"""
     authenticated_user = User.authenticate("inexistant", "password")
 
     assert authenticated_user is None
 
+
 def test_authenticate_empty_credentials(test_db):
     """Test authentification avec identifiants vides"""
     authenticated_user = User.authenticate("", "")
 
     assert authenticated_user is None
+
 
 # Tests create method
 def test_create_user_success(test_db):
@@ -149,6 +160,7 @@ def test_create_user_success(test_db):
     assert user.department_id == dept.id
     assert user.password_hash != "password123"
 
+
 def test_create_user_missing_password(test_db):
     """Création sans mot de passe"""
     dept = Department.create(name="support", description="Équipe support")
@@ -164,6 +176,7 @@ def test_create_user_missing_password(test_db):
 
     assert "Le mot de passe est obligatoire" in str(exc_info.value)
 
+
 def test_create_user_invalid_department(test_db):
     """Création avec département inexistant"""
     with pytest.raises(ValueError) as exc_info:
@@ -177,6 +190,7 @@ def test_create_user_invalid_department(test_db):
         )
 
     assert "Département 'inexistant' introuvable" in str(exc_info.value)
+
 
 # Tests update method
 def test_update_user_success(test_db):
@@ -203,6 +217,7 @@ def test_update_user_success(test_db):
     assert updated_user.name == "Jean Modifié"
     assert updated_user.department_id == dept2.id
 
+
 def test_update_user_wrong_role(test_db):
     """Mise à jour refusée pour mauvais rôle"""
     dept = Department.create(name="commercial", description="Commercial")
@@ -220,12 +235,14 @@ def test_update_user_wrong_role(test_db):
 
     assert "Seule l'équipe gestion peut modifier" in str(exc_info.value)
 
+
 def test_update_user_not_found(test_db):
     """Mise à jour d'utilisateur inexistant"""
     with pytest.raises(ValueError) as exc_info:
         User.update(user_id=999, role="gestion", name="Test")
 
     assert "Utilisateur avec l'ID 999 introuvable" in str(exc_info.value)
+
 
 def test_update_user_invalid_department(test_db):
     """Mise à jour avec département inexistant"""
@@ -249,6 +266,7 @@ def test_update_user_invalid_department(test_db):
 
     assert "Département 'departement_inexistant' introuvable" in str(exc_info.value)
 
+
 # Tests Delete method
 def test_delete_user_success(test_db):
     """Suppression réussie par équipe gestion"""
@@ -270,6 +288,7 @@ def test_delete_user_success(test_db):
     with pytest.raises(ValueError):
         User.update(user_id=user.id, role="gestion", name="Test")
 
+
 def test_delete_user_wrong_role(test_db):
     """Suppression refusée pour mauvais rôle"""
     dept = Department.create(name="commercial", description="Commercial")
@@ -287,12 +306,14 @@ def test_delete_user_wrong_role(test_db):
 
     assert "Seule l'équipe gestion peut supprimer" in str(exc_info.value)
 
+
 def test_delete_user_not_found(test_db):
     """Suppression d'utilisateur inexistant"""
     with pytest.raises(ValueError) as exc_info:
         User.delete(user_id=999, role="gestion")
 
     assert "Utilisateur avec l'ID 999 introuvable" in str(exc_info.value)
+
 
 def test_update_user_with_password(test_db):
     """Mise à jour avec nouveau mot de passe"""
@@ -320,10 +341,12 @@ def test_update_user_with_password(test_db):
 
 # Tests Get_all method
 
+
 def test_get_all_users_empty(test_db):
     """Test si aucun utilisateur"""
     users = User.get_all()
     assert len(users) == 0
+
 
 def test_get_all_users_with_data(test_db):
     """Test avec données valide"""
@@ -353,16 +376,18 @@ def test_get_all_users_with_data(test_db):
     assert users[0].name == "User 1"
     assert users[1].name == "User 2"
 
+
 # Test department
 def test_department_name_with_department():
     user = User()
     user.department = Department()
     user.department.name = "gestion"
-    
+
     assert user.department_name == "gestion"
+
 
 def test_department_name_without_department():
     user = User()
     user.department = None
-    
+
     assert user.department_name is None

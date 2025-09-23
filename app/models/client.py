@@ -22,10 +22,10 @@ class Client(Base, DateTracked):
     # Relation avec la class Contract
     contracts = relationship("app.models.contract.Contract", back_populates="client")
 
-    def __repr__(self): # pragma: no cover
+    def __repr__(self):  # pragma: no cover
         return f"Client(id={self.id}, name='{self.name}', email='{self.mail}', company='{self.company_name}')"
 
-    def __str__(self): # pragma: no cover
+    def __str__(self):  # pragma: no cover
         created_str = self.created_at.strftime('%d/%m/%Y à %H:%M')
         updated_str = self.last_updated_at.strftime('%d/%m/%Y à %H:%M') if self.last_updated_at else 'Jamais modifié'
         return f"({self.id}) - {self.name} ({self.mail}) - {self.company_name}\nCréé: {created_str} | Modifié: {updated_str}"
@@ -78,7 +78,7 @@ class Client(Base, DateTracked):
         try:
             clients = session.query(cls).all()
             return clients
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             session.rollback()
             raise e
         finally:
