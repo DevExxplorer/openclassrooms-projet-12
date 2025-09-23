@@ -13,6 +13,7 @@ load_dotenv()
 # Base pour tous nos modèles
 Base = declarative_base()
 
+
 class DatabaseManager:
     def __init__(self):
         """
@@ -20,7 +21,11 @@ class DatabaseManager:
         Création du moteur de la base de donnée
         Création de la session
         """
-        self.database_url = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', 5432)}/{os.getenv('DB_NAME')}"
+        self.database_url = (
+            f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+            f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', 5432)}"
+            f"/{os.getenv('DB_NAME')}"
+        )
         self.engine = create_engine(self.database_url, echo=os.getenv('MODE') == 'dev')
         self.SessionLocal = sessionmaker(bind=self.engine)
 
@@ -56,5 +61,6 @@ class DatabaseManager:
         """
         Base.metadata.drop_all(bind=self.engine)
         print("Tables supprimées !")
+
 
 db_manager = DatabaseManager()

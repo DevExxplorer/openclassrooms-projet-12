@@ -9,7 +9,6 @@ class MenuService:
     def __init__(self):
         self.console = Console()
 
-
     def handle_main_menu(self, user):
         """Gère l'affichage du menu principal"""
         # Récupération du département
@@ -20,13 +19,13 @@ class MenuService:
         # Affichage du menu principal
         menu = Menu(dept_name)
         menu.display()
-        
+
         while True:
             choice = menu.get_choice()
             if menu.is_valid_choice(choice):
                 if choice == "0":
                     return "logout"
-                
+
                 submenu_key = MENU_MAPPING[dept_name.lower()].get(choice)
                 result = self.handle_submenu(submenu_key)
                 if result == "back_to_main":
@@ -34,10 +33,9 @@ class MenuService:
                 return result
             self.console.print(MESSAGES["invalid_option"])
 
-
     def handle_submenu(self, submenu_key):
         """Gère l'affichage et la sélection des options dans un sous-menu"""
-    
+
         if submenu_key:
             submenu = Submenu(submenu_key)
             submenu.display()
@@ -54,7 +52,6 @@ class MenuService:
         else:
             self.console.print("[yellow]Action directe - pas de sous-menu[/yellow]")
 
-
     def _get_user_department(self, user):
         """Méthode récupérer le département"""
         try:
@@ -66,7 +63,6 @@ class MenuService:
         except Exception as e:
             self.console.print(f"[red]Erreur: {e}[/red]")
             return None
-
 
     def _route_to_command(self, submenu_key, choice):
         """Méthode pour diriger vers les bonnes commandes"""
@@ -82,4 +78,3 @@ class MenuService:
                 gestion_cmd.list_users()
         elif submenu_key == "gestion_contrats":
             pass
-        

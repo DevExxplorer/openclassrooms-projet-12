@@ -34,9 +34,7 @@ INVALID_PHONES = [
     "None"
 ]
 
-# TEST CREATE METHODS
 
-# TEST ROLE
 @pytest.mark.parametrize("role", VALID_ROLES)
 def test_create_valid_roles(role, test_db):
     """Test que le rôle 'commercial' peut créer des clients"""
@@ -48,6 +46,7 @@ def test_create_valid_roles(role, test_db):
     assert client.name == "Jean Dupont"
     assert client.mail == "jean@test.com"
 
+
 @pytest.mark.parametrize("role", INVALID_ROLES)
 def test_create_invalid_roles(role, test_db):
     """Test que tous les autres rôles sont rejetés"""
@@ -58,7 +57,7 @@ def test_create_invalid_roles(role, test_db):
             mail="jean@test.com"
         )
 
-# TEST NAME
+
 def test_create_client_empty_name(test_db):
     """Test : nom vide échoue"""
     with pytest.raises(ValueError):
@@ -68,6 +67,7 @@ def test_create_client_empty_name(test_db):
             mail="test@email.com"
         )
     assert "Le nom du client est obligatoire"
+
 
 def test_create_client_whitespace_name(test_db):
     """Test : nom avec espaces uniquement échoue"""
@@ -81,6 +81,7 @@ def test_create_client_whitespace_name(test_db):
 
 # TEST EMAILS
 
+
 @pytest.mark.parametrize("email", VALID_EMAILS)
 def test_create_valid_emails(email, test_db):
     """Test : email valide"""
@@ -91,6 +92,7 @@ def test_create_valid_emails(email, test_db):
     )
     assert client.mail == email
 
+
 @pytest.mark.parametrize("email", INVALID_EMAILS)
 def test_create_invalid_emails(email, test_db):
     """Test : email invalide"""
@@ -100,6 +102,7 @@ def test_create_invalid_emails(email, test_db):
             name="Pierre",
             mail=email
         )
+
 
 def test_create_client_duplicate_email(test_db):
     """Test : email déjà existant échoue"""
@@ -119,6 +122,7 @@ def test_create_client_duplicate_email(test_db):
         )
     assert "Le client avec l'email 'duplicate@test.com' existe déjà"
 
+
 # TEST PHONES
 @pytest.mark.parametrize("phone", VALID_PHONES)
 def test_create_valid_phones(phone, test_db):
@@ -127,9 +131,10 @@ def test_create_valid_phones(phone, test_db):
         role="commercial",
         name="Jacques",
         phone=phone,
-        mail = "test@email.com"
+        mail="test@email.com"
     )
     assert client.phone == phone
+
 
 @pytest.mark.parametrize("phone", INVALID_PHONES)
 def test_create_invalid_phones(phone, test_db):
@@ -158,10 +163,12 @@ def test_get_all_clients(test_db):
     assert clients[0].name == "Client1"
     assert clients[1].name == "Client2"
 
+
 def test_get_all_clients_empty(test_db):
     """Test : récupérer tous les clients quand la table est vide"""
     clients = Client.get_all()
     assert len(clients) == 0
+
 
 def test_get_by_id_success(test_db):
     """Test : récupérer un client par ID existant"""
@@ -173,12 +180,14 @@ def test_get_by_id_success(test_db):
     assert found_client.name == "Jean"
     assert found_client.mail == "jean@test.com"
 
+
 def test_get_by_id_not_found(test_db):
     """Test : récupérer un client par ID inexistant"""
     with pytest.raises(ValueError) as exc_info:
         Client.get_by_id(999)
 
     assert "Client avec l'ID 999 introuvable" in str(exc_info.value)
+
 
 def test_get_by_email_success(test_db):
     """Test : récupérer un client par email existant"""
@@ -188,6 +197,7 @@ def test_get_by_email_success(test_db):
 
     assert found_client.name == "Marie"
     assert found_client.mail == "marie@test.com"
+
 
 def test_get_by_email_not_found(test_db):
     """Test : récupérer un client par email inexistant"""

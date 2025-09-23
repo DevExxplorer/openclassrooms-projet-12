@@ -27,8 +27,8 @@ class Contract(Base, DateTracked):
     # Relation avec la class Event
     events = relationship("app.models.event.Event", back_populates="contract")
 
-    def __repr__(self): # pragma: no cover
+    def __repr__(self):  # pragma: no cover
         return f"Contract(id={self.id}, client='{self.client.name if self.client else 'None'}', signed={self.is_signed})"
 
-    def __str__(self): # pragma: no cover
+    def __str__(self):  # pragma: no cover
         return f"Contrat #{self.id} - {self.client.name if self.client else 'Client inconnu'} ({'Signé' if self.is_signed else 'Non signé'})"

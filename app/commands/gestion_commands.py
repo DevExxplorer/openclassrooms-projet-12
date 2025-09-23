@@ -4,6 +4,7 @@ from rich.console import Console
 from app.database.db import db_manager
 from app.models.department import Department
 
+
 class GestionCommands:
     def __init__(self):
         self.user_view = UserView()
@@ -22,18 +23,18 @@ class GestionCommands:
         """Modifier un collaborateur"""
         employee_number = self.user_view.get_employee_number()
         session = db_manager.get_session()
-        
+
         try:
             user = session.query(User).filter(User.employee_number == employee_number).first()
             if not user:
                 self.console.print(f"[red]Collaborateur avec le numéro {employee_number} introuvable.[/red]")
                 return
-        
+
             # Forcer le chargement du département avant de l'utiliser
             dept_name = user.department.name if user.department else None
-        
+
             updated_data = self.user_view.get_user_update_form(user)
-        
+
             # Gérer le département spécialement
             if 'department' in updated_data:
                 new_dept_name = updated_data.pop('department')  # Retire 'department' du dict
@@ -44,22 +45,22 @@ class GestionCommands:
                     else:
                         self.console.print(f"[red]Département '{new_dept_name}' introuvable.[/red]")
                         return
-        
+
             # Gérer le mot de passe s'il est fourni
             if 'password' in updated_data and updated_data['password'].strip():
                 password = updated_data.pop('password')
                 user.password_hash = User.hash_password(password)
             elif 'password' in updated_data:
                 updated_data.pop('password')  # Enlever si vide
-            
+
             # Mettre à jour les autres champs
             for key, value in updated_data.items():
                 if hasattr(user, key) and value.strip():  # Vérifier que l'attribut existe et n'est pas vide
                     setattr(user, key, value)
-        
+
             session.commit()
             self.console.print(f"[green]Collaborateur {user.name} mis à jour avec succès ![/green]")
-            
+
         except Exception as e:
             session.rollback()
             self.console.print(f"[red]Erreur lors de la mise à jour : {e}[/red]")
@@ -70,7 +71,7 @@ class GestionCommands:
         """Supprimer un collaborateur"""
         employee_number = self.user_view.get_employee_number()
         session = db_manager.get_session()
-        
+
         try:
             user = session.query(User).filter(User.employee_number == employee_number).first()
             if not user:
@@ -96,7 +97,7 @@ class GestionCommands:
                     _ = user.department.name if user.department else None
             finally:
                 session.close()
-            
+
             self.user_view.display_user_list(users)
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
