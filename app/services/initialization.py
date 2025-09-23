@@ -4,6 +4,7 @@ from app.database.db import db_manager
 
 
 class Initialization:
+    """Service d'initialisation de l'application"""
     @staticmethod
     def initialize_departments():
         """Initialiser les départements de base"""
@@ -30,6 +31,7 @@ class Initialization:
 
         return results
 
+
     @staticmethod
     def create_default_admin():
         """Créer l'administrateur par défaut"""
@@ -44,6 +46,7 @@ class Initialization:
             return admin, True
         except Exception as e:
             raise e
+
 
     @staticmethod
     def initialize_application():
