@@ -11,6 +11,7 @@ MENU = {
         {"option": "2", "title": "Gestion des contrats"},
         {"option": "3", "title": "Gestion des événements"},
         {"option": "4", "title": "Filtrer les événements"},
+        {"option": "5", "title": "Consulter tous les clients"},
         {"option": "0", "title": "Se déconnecter"}
     ],
     "commercial": [
