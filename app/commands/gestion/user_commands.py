@@ -5,7 +5,7 @@ from app.database.db import db_manager
 from app.models.department import Department
 
 
-class GestionCommands:
+class UserCommands:
     def __init__(self):
         self.user_view = UserView()
         self.console = Console()
@@ -101,3 +101,5 @@ class GestionCommands:
             self.user_view.display_user_list(users)
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
+
+

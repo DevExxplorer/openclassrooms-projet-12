@@ -2,19 +2,18 @@ from rich.console import Console
 from app.models import Department
 from app.views.menu import Menu, Submenu
 from app.utils.constants import MESSAGES, MENU_MAPPING
-from app.commands.gestion_commands import GestionCommands
+from app.services.command_router import CommandRouter
 
 
 class MenuService:
     def __init__(self):
         self.console = Console()
+        self.router = CommandRouter()
 
     def handle_main_menu(self, user):
         """Gère l'affichage du menu principal"""
         # Récupération du département
         dept_name = self._get_user_department(user)
-        if not dept_name:
-            return "logout"
 
         # Affichage du menu principal
         menu = Menu(dept_name)
@@ -31,6 +30,7 @@ class MenuService:
                 if result == "back_to_main":
                     continue
                 return result
+            
             self.console.print(MESSAGES["invalid_option"])
 
     def handle_submenu(self, submenu_key):
@@ -67,14 +67,10 @@ class MenuService:
     def _route_to_command(self, submenu_key, choice):
         """Méthode pour diriger vers les bonnes commandes"""
         if submenu_key == "gestion_collaborateurs":
-            gestion_cmd = GestionCommands()
-            if choice == "1":
-                gestion_cmd.create_user()
-            elif choice == "2":
-                gestion_cmd.update_user()
-            elif choice == "3":
-                gestion_cmd.delete_user()
-            elif choice == "4":
-                gestion_cmd.list_users()
+            self.router.execute("users", choice)
         elif submenu_key == "gestion_contrats":
-            pass
+            self.router.execute("contracts", choice)
+        elif submenu_key == "gestion_evenements":
+            self.router.execute("events", choice)
+        else:
+            self.console.print(f"[red]Sous-menu '{submenu_key}' non implémenté[/red]")
