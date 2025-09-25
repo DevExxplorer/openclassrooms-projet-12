@@ -4,7 +4,7 @@ from rich.table import Table
 
 
 class UserView:
-    """Vue pour les opérations liées aux utilisateurs"""
+    """Vue liées aux collaborateurs"""
     def __init__(self):
         self.console = Console()
 

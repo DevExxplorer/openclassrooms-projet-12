@@ -66,7 +66,5 @@ def main_cli(dev_init, command):
     """Interface en ligne de commande pour Epic Events CRM"""
     if dev_init:
         initialize_database()
-    elif command == "login":
-        console.print("Login executé")
     else:
         main_loop()
