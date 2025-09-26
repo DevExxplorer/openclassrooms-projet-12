@@ -1,6 +1,5 @@
 from rich.console import Console
 from rich.prompt import Prompt
-from rich.table import Table
 
 
 class ContractView:
@@ -12,13 +11,13 @@ class ContractView:
         """Affiche le formulaire de création de contrat et retourne les données"""
 
         self.console.print("[bold blue]Création d'un nouveau contrat[/bold blue]\n")
-    
+
         client_id = Prompt.ask("ID du client")
-        commercial_contact_id = Prompt.ask("ID du commercial responsable") 
+        commercial_contact_id = Prompt.ask("ID du commercial responsable")
         total_amount = Prompt.ask("Montant total")
         remaining_amount = Prompt.ask("Montant restant à payer")
         status = Prompt.ask("Statut", choices=["signé", "non signé"], default="non signé")
-        
+
         return {
             'client_id': client_id,
             'commercial_contact_id': commercial_contact_id,

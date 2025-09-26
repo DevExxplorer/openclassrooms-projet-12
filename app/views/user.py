@@ -3,7 +3,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 
-class UserView:
+class userView:
     """Vue liées aux collaborateurs"""
     def __init__(self):
         self.console = Console()
@@ -25,14 +25,14 @@ class UserView:
             'department': department
         }
 
-    def get_employee_number(self):
+    def get_user_number(self):
         """Demande le numéro d'employé pour les opérations de mise à jour ou de suppression"""
-        employee_number = Prompt.ask("Entrez le numéro d'employé du collaborateur")
-        return employee_number
+        user_number = Prompt.ask("Entrez le numéro d'employé du collaborateur")
+        return user_number
 
     def get_user_update_form(self, user):
         """Affiche le formulaire de mise à jour d'utilisateur et retourne les données"""
-        self.console.print(f"[blue]Mise à jour du collaborateur {user.name} (Numéro: {user.employee_number})[/blue]\n")
+        self.console.print(f"[blue]Mise à jour du collaborateur {user.name} (Numéro: {user.user_number})[/blue]\n")
         name = Prompt.ask("Nom complet", default=user.name)
         mail = Prompt.ask("Email", default=user.mail)
         username = Prompt.ask("Nom d'utilisateur", default=user.username)
@@ -67,7 +67,7 @@ class UserView:
             created_date = user.created_at.strftime('%d/%m/%Y') if user.created_at else "N/A"
 
             table.add_row(
-                user.employee_number,
+                user.user_number,
                 user.name,
                 user.mail,
                 dept_name,

@@ -8,10 +8,14 @@ from app.services.command_router import CommandRouter
 class MenuService:
     def __init__(self):
         self.console = Console()
-        self.router = CommandRouter()
+        self.router = None
 
     def handle_main_menu(self, user):
-        """Gère l'affichage du menu principal"""
+        """Gère l'affichage et la sélection des options dans le menu principal"""
+
+        # Initialisation du routeur de commandes avec l'utilisateur courant
+        self.router = CommandRouter(current_user=user)
+
         # Récupération du département
         dept_name = self._get_user_department(user)
 
@@ -26,11 +30,23 @@ class MenuService:
                     return "logout"
 
                 submenu_key = MENU_MAPPING[dept_name.lower()].get(choice)
-                result = self.handle_submenu(submenu_key)
-                if result == "back_to_main":
+
+                if not submenu_key:
+                    # Si pas de sous-menu, gérer les actions directes
+                    if dept_name.lower() == "commercial":
+                        if choice == "2":
+                            return "create_client"
+
+                    self.console.print("[red]Sous-menu non trouvé[/red]")
                     continue
+
+                result = self.handle_submenu(submenu_key)
+
+                if result == "back_to_main":
+                    break
+
                 return result
-            
+
             self.console.print(MESSAGES["invalid_option"])
 
     def handle_submenu(self, submenu_key):
@@ -49,8 +65,6 @@ class MenuService:
                     self._route_to_command(submenu_key, choice)
                     break
                 self.console.print(MESSAGES["invalid_option"])
-        else:
-            self.console.print("[yellow]Action directe - pas de sous-menu[/yellow]")
 
     def _get_user_department(self, user):
         """Méthode récupérer le département"""
@@ -72,5 +86,7 @@ class MenuService:
             self.router.execute("contracts", choice)
         elif submenu_key == "gestion_evenements":
             self.router.execute("events", choice)
+        elif submenu_key == "commercial_mes_clients":
+            self.router.execute("clients", choice)
         else:
             self.console.print(f"[red]Sous-menu '{submenu_key}' non implémenté[/red]")

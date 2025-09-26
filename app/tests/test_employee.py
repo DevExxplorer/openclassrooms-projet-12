@@ -70,7 +70,7 @@ def test_authenticate_success(test_db):
 
     # Créer un utilisateur
     _user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -92,7 +92,7 @@ def test_authenticate_wrong_password(test_db):
     # Création  du département et de l'utilisateur
     dept = Department.create(name="support", description="Équipe support")
     user = User.create(
-        employee_number="EMP002",
+        user_number="EMP002",
         name="Marie Test",
         mail="marie@test.com",
         username="marie.test",
@@ -112,7 +112,7 @@ def test_authenticate_wrong_username(test_db):
     # Création du département et de l'utilisateur
     dept = Department.create(name="gestion", description="Équipe gestion")
     user = User.create(
-        employee_number="EMP003",
+        user_number="EMP003",
         name="Paul Test",
         mail="paul@test.com",
         username="paul.test",
@@ -146,7 +146,7 @@ def test_create_user_success(test_db):
     dept = Department.create(name="commercial", description="Équipe commerciale")
 
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -167,7 +167,7 @@ def test_create_user_missing_password(test_db):
 
     with pytest.raises(ValueError) as exc_info:
         User.create(
-            employee_number="EMP002",
+            user_number="EMP002",
             name="Test User",
             mail="test@test.com",
             username="test",
@@ -181,7 +181,7 @@ def test_create_user_invalid_department(test_db):
     """Création avec département inexistant"""
     with pytest.raises(ValueError) as exc_info:
         User.create(
-            employee_number="EMP003",
+            user_number="EMP003",
             name="Test User",
             mail="test@test.com",
             username="test",
@@ -199,7 +199,7 @@ def test_update_user_success(test_db):
     dept2 = Department.create(name="support", description="Support")
 
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -222,7 +222,7 @@ def test_update_user_wrong_role(test_db):
     """Mise à jour refusée pour mauvais rôle"""
     dept = Department.create(name="commercial", description="Commercial")
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -249,7 +249,7 @@ def test_update_user_invalid_department(test_db):
     dept = Department.create(name="commercial", description="Commercial")
 
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -272,7 +272,7 @@ def test_delete_user_success(test_db):
     """Suppression réussie par équipe gestion"""
     dept = Department.create(name="commercial", description="Commercial")
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -293,7 +293,7 @@ def test_delete_user_wrong_role(test_db):
     """Suppression refusée pour mauvais rôle"""
     dept = Department.create(name="commercial", description="Commercial")
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -320,7 +320,7 @@ def test_update_user_with_password(test_db):
     dept = Department.create(name="commercial", description="Commercial")
 
     user = User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -353,7 +353,7 @@ def test_get_all_users_with_data(test_db):
     dept = Department.create(name="commercial", description="Commercial")
 
     User.create(
-        employee_number="EMP001",
+        user_number="EMP001",
         name="User 1",
         mail="user1@test.com",
         username="user1",
@@ -362,7 +362,7 @@ def test_get_all_users_with_data(test_db):
     )
 
     User.create(
-        employee_number="EMP002",
+        user_number="EMP002",
         name="User 2",
         mail="user2@test.com",
         username="user2",

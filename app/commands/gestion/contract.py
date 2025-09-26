@@ -1,12 +1,14 @@
-from app.views.contract_view import ContractView
+from app.views.contract import ContractView
 from app.models.contract import Contract
 from rich.console import Console
 from app.database.db import db_manager
 
+
 class ContractCommands:
-    def __init__(self):
+    def __init__(self, current_user=None):
         self.contract_view = ContractView()
         self.console = Console()
+        self.current_user = current_user
 
     def create_contract(self):
         """Créer un contrat"""
