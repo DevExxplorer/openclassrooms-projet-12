@@ -42,12 +42,12 @@ class Contract(Base, DateTracked):
         client = session.query(Client).filter(Client.id == kwargs.get('client_id')).first()
         if not client:
             raise ValueError(f"Client avec l'ID {kwargs.get('client_id')} introuvable")
-        
+
         # Vérification de l'existence du commercial
         commercial = session.query(User).filter(User.id == kwargs.get('commercial_contact_id')).first()
         if not commercial:
             raise ValueError(f"Commercial avec l'ID {kwargs.get('commercial_contact_id')} introuvable")
-        
+
         # Création du contrat
         contract = Contract(
             client_id=kwargs.get('client_id'),

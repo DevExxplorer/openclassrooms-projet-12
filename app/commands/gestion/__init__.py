@@ -1,3 +1,3 @@
-from .user_commands import UserCommands
-from .contract_commands import ContractCommands
+from .user import userCommands
+from .contract import ContractCommands
 # from .event_commands import EventCommands

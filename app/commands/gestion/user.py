@@ -1,14 +1,15 @@
-from app.views.user import UserView
+from app.views.user import userView
 from app.models.user import User
 from rich.console import Console
 from app.database.db import db_manager
 from app.models.department import Department
 
 
-class UserCommands:
-    def __init__(self):
-        self.user_view = UserView()
+class userCommands:
+    def __init__(self, current_user=None):
+        self.user_view = userView()
         self.console = Console()
+        self.current_user = current_user
 
     def create_user(self):
         """Créer un collaborateur"""
@@ -21,13 +22,13 @@ class UserCommands:
 
     def update_user(self):
         """Modifier un collaborateur"""
-        employee_number = self.user_view.get_employee_number()
+        user_number = self.user_view.get_user_number()
         session = db_manager.get_session()
 
         try:
-            user = session.query(User).filter(User.employee_number == employee_number).first()
+            user = session.query(User).filter(User.user_number == user_number).first()
             if not user:
-                self.console.print(f"[red]Collaborateur avec le numéro {employee_number} introuvable.[/red]")
+                self.console.print(f"[red]Collaborateur avec le numéro {user_number} introuvable.[/red]")
                 return
 
             # Forcer le chargement du département avant de l'utiliser
@@ -69,13 +70,13 @@ class UserCommands:
 
     def delete_user(self):
         """Supprimer un collaborateur"""
-        employee_number = self.user_view.get_employee_number()
+        user_number = self.user_view.get_user_number()
         session = db_manager.get_session()
 
         try:
-            user = session.query(User).filter(User.employee_number == employee_number).first()
+            user = session.query(User).filter(User.user_number == user_number).first()
             if not user:
-                self.console.print(f"[red]Collaborateur avec le numéro {employee_number} introuvable.[/red]")
+                self.console.print(f"[red]Collaborateur avec le numéro {user_number} introuvable.[/red]")
                 return
             session.delete(user)
             session.commit()
@@ -101,5 +102,3 @@ class UserCommands:
             self.user_view.display_user_list(users)
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
-
-
