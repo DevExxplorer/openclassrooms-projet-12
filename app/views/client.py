@@ -36,6 +36,7 @@ class ClientView:
         table.add_column("Email", style="magenta")
         table.add_column("Téléphone", style="green")
         table.add_column("Entreprise", style="yellow")
+        table.add_column("Commercial ID", style="blue", no_wrap=True)
         table.add_column("Créé le", style="dim")
         table.add_column("Modifier le", style="dim")
 
@@ -47,8 +48,9 @@ class ClientView:
                 client.mail,
                 client.phone,
                 client.company_name,
-                client.created_at.strftime("%Y-%m-%d"),
-                client.last_updated_at.strftime("%Y-%m-%d")
+                str(client.commercial_contact_id),
+                client.created_at.strftime("%d-%m-%Y"),
+                client.last_updated_at.strftime("%d-%m-%Y")
             )
 
         self.console.print("\n" * 2)

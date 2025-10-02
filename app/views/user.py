@@ -55,6 +55,7 @@ class userView:
         table = Table(title="[bold blue]Liste des collaborateurs[/bold blue]")
 
         # Ajouter les colonnes
+        table.add_column("ID", style="cyan", no_wrap=True)
         table.add_column("Numéro", style="cyan", no_wrap=True)
         table.add_column("Nom", style="magenta")
         table.add_column("Email", style="green")
@@ -67,7 +68,8 @@ class userView:
             created_date = user.created_at.strftime('%d/%m/%Y') if user.created_at else "N/A"
 
             table.add_row(
-                user.user_number,
+                str(user.id),
+                user.employee_number,
                 user.name,
                 user.mail,
                 dept_name,

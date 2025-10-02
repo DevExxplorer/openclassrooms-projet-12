@@ -5,7 +5,7 @@ from app.database.db import db_manager
 from app.models.department import Department
 
 
-class userCommands:
+class UserCommands:
     def __init__(self, current_user=None):
         self.user_view = userView()
         self.console = Console()
@@ -87,13 +87,19 @@ class userCommands:
         finally:
             session.close()
 
-    def list_users(self):
+    def list_users(self, filter_by_department=None):
         """Lister tous les collaborateurs"""
         try:
             session = db_manager.get_session()
             try:
-                users = session.query(User).all()
-                # Forcer le chargement de tous les départements
+                if filter_by_department:
+                    users = session.query(User).join(User.department).filter(
+                        Department.name == filter_by_department
+                    ).all()
+                else:
+                    users = session.query(User).all()
+
+                # Forcer le chargement AVANT de fermer la session
                 for user in users:
                     _ = user.department.name if user.department else None
             finally:

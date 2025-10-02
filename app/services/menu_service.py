@@ -32,10 +32,14 @@ class MenuService:
                 submenu_key = MENU_MAPPING[dept_name.lower()].get(choice)
 
                 if not submenu_key:
+                    submenu_slug = dept_name.lower()
                     # Si pas de sous-menu, gérer les actions directes
-                    if dept_name.lower() == "commercial":
+                    if submenu_slug == "commercial":
                         if choice == "2":
                             return "create_client"
+                    elif submenu_slug == "gestion":
+                        if choice == "5":
+                            return "list_all_clients"
 
                     self.console.print("[red]Sous-menu non trouvé[/red]")
                     continue
@@ -81,12 +85,16 @@ class MenuService:
     def _route_to_command(self, submenu_key, choice):
         """Méthode pour diriger vers les bonnes commandes"""
         if submenu_key == "gestion_collaborateurs":
-            self.router.execute("users", choice)
+            self.router.execute("users", "gestion", choice)
         elif submenu_key == "gestion_contrats":
-            self.router.execute("contracts", choice)
+            self.router.execute("contracts", "gestion", choice)
         elif submenu_key == "gestion_evenements":
-            self.router.execute("events", choice)
+            self.router.execute("events", "gestion", choice)
         elif submenu_key == "commercial_mes_clients":
-            self.router.execute("clients", choice)
+            self.router.execute("clients", "commercial", choice)
+        elif submenu_key == "commercial_mes_contrats":
+            self.router.execute("contracts", "commercial", choice)
+        elif submenu_key == "commercial_filtres_contrats":
+            self.router.execute("filters", "commercial", choice)
         else:
             self.console.print(f"[red]Sous-menu '{submenu_key}' non implémenté[/red]")
