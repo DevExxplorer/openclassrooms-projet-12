@@ -6,11 +6,12 @@ from app.database.db import db_manager
 
 class ClientCommands:
     """Commandes liées aux clients"""
-    def __init__(self, current_user=None):
+    def __init__(self, current_user=None, role=None):
         """Initialisation"""
         self.console = Console()
         self.view = ClientView()
         self.current_user = current_user
+        self.role = role
 
     def create_client(self):
         """Créer un nouveau client"""
@@ -28,9 +29,14 @@ class ClientCommands:
     def list_clients(self):
         """Lister tous les clients"""
         session = db_manager.get_session()
-        clients = session.query(Client).filter(
-            Client.commercial_contact_id == self.current_user.id
-        ).all()
+
+        if self.role == "gestion":
+            clients = session.query(Client).all()
+        else:
+            clients = session.query(Client).filter(
+                Client.commercial_contact_id == self.current_user.id
+            ).all()
+
         self.view.display_clients(clients)
 
     def update_client(self):

@@ -4,7 +4,7 @@ from app.services.auth_service import AuthService
 from app.services.menu_service import MenuService
 from app.services.initialization import Initialization
 from app.utils.constants import MESSAGES
-from app.commands.commercial import ClientCommands
+from app.commands import ClientCommands
 
 console = Console()
 
@@ -36,6 +36,8 @@ def show_menu():
         result = menu_service.handle_main_menu(user)
         if result == "create_client":
             ClientCommands(current_user=user).create_client()
+        elif result == "list_all_clients":
+            ClientCommands(role="gestion").list_clients()
         elif result == "logout":
             return "continue"
         elif result == "exit":
