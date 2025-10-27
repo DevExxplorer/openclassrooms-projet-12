@@ -37,6 +37,8 @@ class MenuService:
                     if submenu_slug == "commercial":
                         if choice == "2":
                             return "create_client"
+                        elif choice == "5":
+                            return "create_event"
                     elif submenu_slug == "gestion":
                         if choice == "5":
                             return "list_all_clients"

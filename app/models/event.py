@@ -1,8 +1,9 @@
 from sqlalchemy import Column, Integer, DateTime, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
-
-from app.database.db import Base
+from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
+from app.models.contract import Contract
+from app.models.user import User
 
 
 class Event(Base, DateTracked):
@@ -33,3 +34,43 @@ class Event(Base, DateTracked):
 
     def __str__(self):  # pragma: no cover
         return f"{self.name} - {self.contract.client.name if self.contract and self.contract.client else 'Client inconnu'}"
+    
+    def create(**kwargs):
+        """Créer un nouvel événement"""
+        session = db_manager.get_session()
+
+        try:
+            # Vérification de l'existence du contrat
+            contract = session.query(Contract).filter(Contract.id == kwargs.get('contract_id')).first()
+            if not contract:
+                raise ValueError(f"Contrat avec l'ID {kwargs.get('contract_id')} introuvable")
+
+            # Vérification de l'existence du support (optionnel)
+            support_contact = None
+            if kwargs.get('support_contact_id'):
+                support_contact = session.query(User).filter(User.id == kwargs.get('support_contact_id')).first()
+                if not support_contact:
+                    raise ValueError(f"Support avec l'ID {kwargs.get('support_contact_id')} introuvable")
+
+            # Création de l'événement
+            event = Event(
+                name=kwargs.get('name'),
+                contract_id=kwargs.get('contract_id'),
+                date_start=kwargs.get('date_start'),
+                date_end=kwargs.get('date_end'),
+                support_contact_id=kwargs.get('support_contact_id') if support_contact else None,
+                location=kwargs.get('location'),
+                attendees=kwargs.get('attendees'),
+                notes=kwargs.get('notes')
+            )
+            session.add(event)
+            session.commit()
+
+            session.refresh(event)
+
+            return event
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
