@@ -85,6 +85,10 @@ class ContractCommands:
         """Filtrer les contrats non signés"""
         self.filter_contracts("unsigned")
 
+    def filter_signed_contracts(self):
+        """Filtrer les contrats signés"""
+        self.filter_contracts("signed") 
+
     def filter_unpaid_contracts(self):
         """Filtrer les contrats avec montant restant"""
         self.filter_contracts("unpaid")
@@ -107,6 +111,8 @@ class ContractCommands:
 
             if filter_type == "unsigned":
                 contracts = base_query.filter(~Contract.is_signed).all()
+            elif filter_type == "signed":
+                contracts = base_query.filter(Contract.is_signed).all()
             elif filter_type == "unpaid":
                 contracts = base_query.filter(Contract.remaining_amount > 0).all()
             elif filter_type == "by_date":

@@ -10,7 +10,6 @@ MENU = {
         {"option": "1", "title": "Gestion des collaborateurs"},
         {"option": "2", "title": "Gestion des contrats"},
         {"option": "3", "title": "Gestion des événements"},
-        {"option": "4", "title": "Filtrer les événements"},
         {"option": "5", "title": "Consulter tous les clients"},
         {"option": "0", "title": "Se déconnecter"}
     ],
@@ -52,13 +51,11 @@ SUBMENUS = {
         {"option": "1", "title": "Modifier un événement"},
         {"option": "2", "title": "Assigner un support à un événement"},
         {"option": "3", "title": "Lister tous les événements"},
-        {"option": "4", "title": "Rechercher un événement"},
+        {"option": "4", "title": "Événements sans support assigné"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
     "gestion_filtres_evenements": [
         {"option": "1", "title": "Événements sans support assigné"},
-        {"option": "2", "title": "Événements par date"},
-        {"option": "3", "title": "Événements par support"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
 
