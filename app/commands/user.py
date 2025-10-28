@@ -22,13 +22,14 @@ class UserCommands:
 
     def update_user(self):
         """Modifier un collaborateur"""
-        user_number = self.user_view.get_user_number()
+        self.list_users()
+        user_id = self.user_view.get_user_id()
         session = db_manager.get_session()
 
         try:
-            user = session.query(User).filter(User.user_number == user_number).first()
+            user = session.query(User).filter(User.id == user_id).first()
             if not user:
-                self.console.print(f"[red]Collaborateur avec le numéro {user_number} introuvable.[/red]")
+                self.console.print(f"[red]Collaborateur avec l'ID {user_id} introuvable.[/red]")
                 return
 
             # Forcer le chargement du département avant de l'utiliser
@@ -70,14 +71,17 @@ class UserCommands:
 
     def delete_user(self):
         """Supprimer un collaborateur"""
-        user_number = self.user_view.get_user_number()
+        self.list_users()
+
+        user_id = self.user_view.get_user_id()
         session = db_manager.get_session()
 
         try:
-            user = session.query(User).filter(User.user_number == user_number).first()
+            user = session.query(User).filter(User.id == user_id).first()
             if not user:
-                self.console.print(f"[red]Collaborateur avec le numéro {user_number} introuvable.[/red]")
+                self.console.print(f"[red]Collaborateur avec l'ID {user_id} introuvable.[/red]")
                 return
+
             session.delete(user)
             session.commit()
             self.console.print(f"[green]Collaborateur {user.name} supprimé ![green]")

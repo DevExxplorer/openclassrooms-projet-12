@@ -25,14 +25,14 @@ class userView:
             'department': department
         }
 
-    def get_user_number(self):
-        """Demande le numéro d'employé pour les opérations de mise à jour ou de suppression"""
-        user_number = Prompt.ask("Entrez le numéro d'employé du collaborateur")
-        return user_number
+    def get_user_id(self):
+        """Demande l'ID utilisateur pour les opérations de mise à jour ou de suppression"""
+        user_id = Prompt.ask("Entrez l'ID du collaborateur")
+        return int(user_id)
 
     def get_user_update_form(self, user):
         """Affiche le formulaire de mise à jour d'utilisateur et retourne les données"""
-        self.console.print(f"[blue]Mise à jour du collaborateur {user.name} (Numéro: {user.user_number})[/blue]\n")
+        self.console.print(f"[blue]Mise à jour du collaborateur {user.name}[/blue]\n")
         name = Prompt.ask("Nom complet", default=user.name)
         mail = Prompt.ask("Email", default=user.mail)
         username = Prompt.ask("Nom d'utilisateur", default=user.username)

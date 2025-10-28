@@ -15,10 +15,10 @@ class CommandRouter:
         """Route les commandes liées aux utilisateurs"""
         if role == "gestion":
             commands = {
-                "1": self.user_cmd.create_user,
-                "2": self.user_cmd.update_user,
-                "3": self.user_cmd.delete_user,
-                "4": self.user_cmd.list_users,
+                "1": lambda: self.user_cmd.create_user(),
+                "2": lambda: self.user_cmd.update_user(),
+                "3": lambda: self.user_cmd.delete_user(),
+                "4": lambda: self.user_cmd.list_users(),
             }
         return commands.get(choice)
 
