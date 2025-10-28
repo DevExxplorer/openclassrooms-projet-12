@@ -26,16 +26,15 @@ class CommandRouter:
         """Route les commandes liées aux contrats"""
         if role == "gestion":
             commands = {
-                "1": self.contract_cmd.create_contract,
-                "2": self.contract_cmd.update_contract,
+                "1": lambda: self.contract_cmd.create_contract(),
+                "2": lambda: self.contract_cmd.update_contract(),
                 "3": lambda: self.contract_cmd.list_contracts(role),
-                "4": self.contract_cmd.search_contract
             }
         elif role == "commercial":
             commands = {
-                "1": self.contract_cmd.list_contracts(role),
-                "2": self.contract_cmd.update_contract,
-                "3": self.contract_cmd.search_contract,
+                "1": lambda: self.contract_cmd.list_contracts(role),
+                "2": lambda: self.contract_cmd.update_contract(),
+                "3": lambda: self.contract_cmd.search_contract(),
             }
         return commands.get(choice)
 

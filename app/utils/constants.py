@@ -44,7 +44,6 @@ SUBMENUS = {
         {"option": "1", "title": "Créer un contrat"},
         {"option": "2", "title": "Modifier un contrat"},
         {"option": "3", "title": "Lister tous les contrats"},
-        {"option": "4", "title": "Rechercher un contrat"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
     "gestion_evenements": [

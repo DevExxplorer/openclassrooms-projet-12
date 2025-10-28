@@ -13,23 +13,19 @@ class ContractView:
 
     def get_contract_creation_form(self):
         """Affiche le formulaire de création de contrat et retourne les données"""
-
-        self.console.print("[bold blue]Création d'un nouveau contrat[/bold blue]\n")
-
-        # Afficher la liste des clients pour aider à choisir un client existant
+    
+        self.console.print("[blue]Création d'un nouveau contrat[/blue]\n")
+        
+        # Afficher la liste des clients
         ClientCommands(role="gestion").list_clients()
         client_id = Prompt.ask("ID du client")
-
-        UserCommands().list_users(filter_by_department="commercial")
-        commercial_contact_id = Prompt.ask("ID du commercial responsable")
-
+        
         total_amount = Prompt.ask("Montant total")
         remaining_amount = Prompt.ask("Montant restant à payer")
         status = Prompt.ask("Statut", choices=["signé", "non signé"], default="non signé")
-
+        
         return {
             'client_id': client_id,
-            'commercial_contact_id': commercial_contact_id,
             'total_amount': total_amount,
             'remaining_amount': remaining_amount,
             'status': status
@@ -38,7 +34,7 @@ class ContractView:
     def get_contract_id(self):
         """Obtenir l'ID du contrat à mettre à jour"""
         contract_id = self.console.input("Entrez l'ID du contrat à mettre à jour : ")
-        return contract_id.strip()
+        return int(contract_id.strip())
 
     def get_contract_update_form(self, contract):
         """Formulaire de mise à jour d'un contrat existant"""
@@ -114,3 +110,8 @@ class ContractView:
         """Obtenir un montant pour filtrer les contrats"""
         amount_str = self.console.input("Entrez le montant minimal : ")
         return float(amount_str.strip())
+
+    def get_commercial_id(self):
+        """Demande l'ID du commercial"""
+        UserCommands().list_users(filter_by_department="commercial")
+        return Prompt.ask("ID du commercial responsable")
