@@ -27,14 +27,13 @@ class CommandRouter:
         if role == "gestion":
             commands = {
                 "1": lambda: self.contract_cmd.create_contract(),
-                "2": lambda: self.contract_cmd.update_contract(),
+                "2": lambda: self.contract_cmd.update_contract(role),
                 "3": lambda: self.contract_cmd.list_contracts(role),
             }
         elif role == "commercial":
             commands = {
                 "1": lambda: self.contract_cmd.list_contracts(role),
-                "2": lambda: self.contract_cmd.update_contract(),
-                "3": lambda: self.contract_cmd.search_contract(),
+                "2": lambda: self.contract_cmd.update_contract(role),
             }
         return commands.get(choice)
 
@@ -42,9 +41,8 @@ class CommandRouter:
         """Route les commandes liées aux clients"""
         if role == "commercial":
             commands = {
-                "1": self.client_cmd.list_clients,
-                "2": self.client_cmd.update_client,
-                "3": self.client_cmd.research_client,
+                "1": lambda: self.client_cmd.list_clients(),
+                "2": lambda: self.client_cmd.update_client(),
             }
         return commands.get(choice)
 
@@ -52,10 +50,8 @@ class CommandRouter:
         """Route les commandes liées aux filtres contrats"""
         if role == "commercial":
             commands = {
-                "1": self.contract_cmd.filter_unsigned_contracts,
-                "2": self.contract_cmd.filter_unpaid_contracts,
-                "3": self.contract_cmd.filter_contracts_by_date,
-                "4": self.contract_cmd.filter_contracts_by_amount,
+                "1": lambda: self.contract_cmd.filter_unsigned_contracts(),
+                "2": lambda: self.contract_cmd.filter_unpaid_contracts(),
             }
         return commands.get(choice)
 

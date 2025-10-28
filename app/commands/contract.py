@@ -40,9 +40,9 @@ class ContractCommands:
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
 
-    def update_contract(self):
+    def update_contract(self, role):
         """Modifier un contrat"""
-        self.list_contracts(role="gestion")
+        self.list_contracts(role=role)
         
         contract_id = self.contract_view.get_contract_id()
         session = db_manager.get_session()
@@ -58,7 +58,7 @@ class ContractCommands:
             updated_data = self.contract_view.get_contract_update_form(contract)
 
             for key, value in updated_data.items():
-                if hasattr(contract, key) and value and str(value).strip():
+                if hasattr(contract, key) and value is not None and str(value).strip():
                     setattr(contract, key, value)
 
             session.commit()
@@ -99,14 +99,6 @@ class ContractCommands:
         """Filtrer les contrats avec montant restant"""
         self.filter_contracts("unpaid")
 
-    def filter_contracts_by_date(self):
-        """Filtrer les contrats par date de création"""
-        self.filter_contracts("by_date")
-
-    def filter_contracts_by_amount(self):
-        """Filtrer les contrats par montant total"""
-        self.filter_contracts("by_amount")
-
     def filter_contracts(self, filter_type):
         """Filtrer les contrats selon différents critères"""
         session = db_manager.get_session()
@@ -121,12 +113,6 @@ class ContractCommands:
                 contracts = base_query.filter(Contract.is_signed).all()
             elif filter_type == "unpaid":
                 contracts = base_query.filter(Contract.remaining_amount > 0).all()
-            elif filter_type == "by_date":
-                date_filter = self.contract_view.get_date_filter()
-                contracts = base_query.filter(Contract.created_at >= date_filter).all()
-            elif filter_type == "by_amount":
-                amount_filter = self.contract_view.get_amount_filter()
-                contracts = base_query.filter(Contract.total_amount >= amount_filter).all()
 
             self.contract_view.display_contract_list(contracts)
 

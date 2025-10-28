@@ -62,20 +62,16 @@ SUBMENUS = {
     "commercial_mes_clients": [
         {"option": "1", "title": "Lister mes clients"},
         {"option": "2", "title": "Modifier un de mes clients"},
-        {"option": "3", "title": "Rechercher un de mes clients"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
     "commercial_mes_contrats": [
         {"option": "1", "title": "Lister mes contrats"},
         {"option": "2", "title": "Modifier un de mes contrats"},
-        {"option": "3", "title": "Rechercher un de mes contrats"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
     "commercial_filtres_contrats": [
         {"option": "1", "title": "Contrats non signés"},
         {"option": "2", "title": "Contrats non entièrement payés"},
-        {"option": "3", "title": "Contrats par date"},
-        {"option": "4", "title": "Contrats par montant"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
 
