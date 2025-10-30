@@ -11,79 +11,58 @@ class CommandRouter:
         self.event_cmd = EventCommands(current_user=current_user)
         self.console = Console()
 
-    def route_user_command(self, role, choice):
-        """Route les commandes liées aux utilisateurs"""
-        if role == "gestion":
-            commands = {
-                "1": self.user_cmd.create_user,
-                "2": self.user_cmd.update_user,
-                "3": self.user_cmd.delete_user,
-                "4": self.user_cmd.list_users,
-            }
-        return commands.get(choice)
+        self.command_map = {
+            # Users - Gestion
+            ("users", "gestion", "1"): lambda: self.user_cmd.create_user(),
+            ("users", "gestion", "2"): lambda: self.user_cmd.update_user(),
+            ("users", "gestion", "3"): lambda: self.user_cmd.delete_user(),
+            ("users", "gestion", "4"): lambda: self.user_cmd.list_users(),
 
-    def route_contract_command(self, role, choice):
-        """Route les commandes liées aux contrats"""
-        if role == "gestion":
-            commands = {
-                "1": self.contract_cmd.create_contract,
-                "2": self.contract_cmd.update_contract,
-                "3": lambda: self.contract_cmd.list_contracts(role),
-                "4": self.contract_cmd.search_contract
-            }
-        elif role == "commercial":
-            commands = {
-                "1": self.contract_cmd.list_contracts(role),
-                "2": self.contract_cmd.update_contract,
-                "3": self.contract_cmd.search_contract,
-            }
-        return commands.get(choice)
+            # Contracts - Gestion
+            ("contracts", "gestion", "1"): lambda: self.contract_cmd.create_contract(),
+            ("contracts", "gestion", "2"): lambda: self.contract_cmd.update_contract("gestion"),
+            ("contracts", "gestion", "3"): lambda: self.contract_cmd.list_contracts("gestion"),
 
-    def route_client_command(self, role, choice):
-        """Route les commandes liées aux clients"""
-        if role == "commercial":
-            commands = {
-                "1": self.client_cmd.list_clients,
-                "2": self.client_cmd.update_client,
-                "3": self.client_cmd.research_client,
-            }
-        return commands.get(choice)
+            # Contracts - Commercial
+            ("contracts", "commercial", "1"): lambda: self.contract_cmd.list_contracts("commercial"),
+            ("contracts", "commercial", "2"): lambda: self.contract_cmd.update_contract("commercial"),
 
-    def route_filters_command(self, role, choice):
-        """Route les commandes liées aux filtres contrats"""
-        if role == "commercial":
-            commands = {
-                "1": self.contract_cmd.filter_unsigned_contracts,
-                "2": self.contract_cmd.filter_unpaid_contracts,
-                "3": self.contract_cmd.filter_contracts_by_date,
-                "4": self.contract_cmd.filter_contracts_by_amount,
-            }
-        return commands.get(choice)
+            # Clients - Commercial
+            ("clients", "commercial", "1"): lambda: self.client_cmd.list_clients(),
+            ("clients", "commercial", "2"): lambda: self.client_cmd.update_client(),
 
-    def route_event_command(self, role, choice):
-        """Route les commandes liées aux événements"""
-        if role == "gestion":
-            commands = {
-                "1": lambda: self.event_cmd.update_event(),
-                "2": lambda: self.event_cmd.assign_support(),
-                "3": lambda: self.event_cmd.list_events(role),
-                "4": lambda: self.event_cmd.list_events(role, filter_no_support=True),
-            }
-        return commands.get(choice)
+            # Filters - Commercial
+            ("filters", "commercial", "1"): lambda: self.contract_cmd.filter_unsigned_contracts(),
+            ("filters", "commercial", "2"): lambda: self.contract_cmd.filter_unpaid_contracts(),
+
+            # Events - Gestion
+            ("events", "gestion", "1"): lambda: self.event_cmd.update_event(),
+            ("events", "gestion", "2"): lambda: self.event_cmd.assign_support(),
+            ("events", "gestion", "3"): lambda: self.event_cmd.list_events("gestion"),
+            ("events", "gestion", "4"): lambda: self.event_cmd.list_events("gestion", filter_no_support=True),
+
+            # Actions directes
+            ("direct", "create_client", ""): lambda: self.client_cmd.create_client(),
+            ("direct", "create_event", ""): lambda: self.event_cmd.create_event(),
+            ("direct", "list_all_clients", ""): lambda: self.client_cmd.list_clients("support"),
+            ("direct", "list_assigned_events", ""): lambda: self.event_cmd.list_events("support"),
+            ("direct", "update_event", ""): lambda: self.event_cmd.update_event(),
+            ("direct", "list_all_contracts", ""): lambda: self.contract_cmd.list_contracts("support")
+        }
 
     def execute(self, command_type, role, choice):
-        if command_type == "users":
-            command = self.route_user_command(role, choice)
-        elif command_type == "contracts":
-            command = self.route_contract_command(role, choice)
-        elif command_type == "events":
-            command = self.route_event_command(role, choice)
-        elif command_type == "clients":
-            command = self.route_client_command(role, choice)
-        elif command_type == "filters":
-            command = self.route_filters_command(role, choice)
-        else:
-            command = None
+        """Exécute la commande en fonction du type, rôle et choix"""
+        command = self.command_map.get((command_type, role, choice))
 
         if command:
             command()
+        else:
+            self.console.print(f"[red]Commande non trouvée: {command_type}/{role}/{choice}[/red]")
+
+    def execute_direct_action(self, action):
+        """Exécute les actions directes"""
+        command = self.command_map.get(("direct", action, ""))
+        if command:
+            command()
+        else:
+            self.console.print(f"[red]Action directe non trouvée: {action}[/red]")

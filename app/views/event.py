@@ -1,8 +1,6 @@
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
-from app.commands.client import ClientCommands
-from app.commands.user import UserCommands
 from datetime import datetime
 
 
@@ -16,7 +14,7 @@ class EventView:
         """Affiche le formulaire de création d'événement et retourne les données"""
 
         self.console.print("[bold blue]Création d'un nouvel événement[/bold blue]\n")
-    
+
         event_name = Prompt.ask("Nom de l'événement : ")
         date_start_input = Prompt.ask(
             "Date/heure de début (DD-MM-YYYY HH:MM)",
@@ -35,7 +33,6 @@ class EventView:
         except ValueError:
             self.console.print("[red]Format de date invalide ! Utilisez DD-MM-YYYY HH:MM[/red]")
             return None
-    
 
         return {
             'contract_id': self.contract_id,
@@ -46,7 +43,7 @@ class EventView:
             'attendees': event_attendees,
             'notes': event_notes
         }
-    
+
     def display_event_list(self, events):
         """Affiche une liste d'événements"""
         if not events:
@@ -88,62 +85,42 @@ class EventView:
 
         self.console.print("[blue]Mise à jour d'un événement[/blue]\n")
 
-        event_name = Prompt.ask(
-            "Nom de l'événement: ",
-            default=event.name if hasattr(event, 'name') else ""
-        )
+        event_name = Prompt.ask("Nom de l'événement: ", default=event.name)
         date_start_input = Prompt.ask(
             "Date/heure de début (DD-MM-YYYY HH:MM)",
-            default=event.date_start.strftime("%d-%m-%Y %H:%M") if hasattr(event, 'date_start') else ""
+            default=event.date_start.strftime("%d-%m-%Y %H:%M")
         )
         date_end_input = Prompt.ask(
             "Date/heure de fin (DD-MM-YYYY HH:MM)",
-            default=event.date_end.strftime("%d-%m-%Y %H:%M") if hasattr(event, 'date_end') else ""
+            default=event.date_end.strftime("%d-%m-%Y %H:%M")
         )
-        event_location = Prompt.ask(
-            "Localisation de l'événement",
-            default=event.location if hasattr(event, 'location') else ""
-        )
-        event_attendees = Prompt.ask(
-            "Nombre de participants",
-            default=event.attendees if hasattr(event, 'attendees') else ""
-        )
-        event_notes = Prompt.ask(
-            "Notes supplémentaires",
-            default=event.notes if hasattr(event, 'notes') else ""
-        )
+        event_location = Prompt.ask("Localisation de l'événement", default=event.location)
+        event_attendees = Prompt.ask("Nombre de participants", default=event.attendees)
+        event_notes = Prompt.ask("Notes supplémentaires", default=event.notes)
 
-        # Conversion au format PostgreSQL
-        date_start = None
-        date_end = None
-        if date_start_input:
-            try:
-                date_start = datetime.strptime(date_start_input, "%d-%m-%Y %H:%M")
-            except ValueError:
-                self.console.print("[red]Format de date invalide ! Utilisez DD-MM-YYYY HH:MM[/red]")
-                return None
-        if date_end_input:
-            try:
-                date_end = datetime.strptime(date_end_input, "%d-%m-%Y %H:%M")
-            except ValueError:
-                self.console.print("[red]Format de date invalide ! Utilisez DD-MM-YYYY HH:MM[/red]")
-                return None
+        # Validation des dates
+        date_start = self._parse_date(date_start_input, "début")
+        date_end = self._parse_date(date_end_input, "fin")
 
-        event_data = {}
-        if event_name:
-            event_data['name'] = event_name
-        if date_start:
-            event_data['date_start'] = date_start
-        if date_end:
-            event_data['date_end'] = date_end
-        if event_location:
-            event_data['location'] = event_location
-        if event_attendees:
-            event_data['attendees'] = event_attendees
-        if event_notes:
-            event_data['notes'] = event_notes
+        if date_start_input and not date_start:
+            return None
+        if date_end_input and not date_end:
+            return None
 
-        return event_data
+        event_data = {
+            'name': event_name,
+            'date_start': date_start,
+            'date_end': date_end,
+            'location': event_location,
+            'attendees': event_attendees,
+            'notes': event_notes
+        }
+        filtered_data = {}
+        for field_name, field_value in event_data.items():
+            if field_value:
+                filtered_data[field_name] = field_value
+
+        return filtered_data
 
     def display_supports_available(self, supports):
         """Affiche une liste des supports disponibles"""
@@ -163,3 +140,13 @@ class EventView:
             )
 
         self.console.print(table)
+
+    def _parse_date(self, date_input, field_name="date"):
+        """Méthode privée pour parser les dates"""
+        if not date_input:
+            return None
+        try:
+            return datetime.strptime(date_input, "%d-%m-%Y %H:%M")
+        except ValueError:
+            self.console.print(f"[red]Format de date invalide pour {field_name} ! Utilisez DD-MM-YYYY HH:MM[/red]")
+            return None

@@ -3,8 +3,8 @@ from rich.console import Console
 from app.services.auth_service import AuthService
 from app.services.menu_service import MenuService
 from app.services.initialization import Initialization
-from app.utils.constants import MESSAGES
-from app.commands import ClientCommands, EventCommands
+from app.utils.constants import MESSAGES, DIRECT_ACTIONS
+
 
 console = Console()
 
@@ -32,14 +32,12 @@ def show_menu():
 
     # Navigation dans les menus
     menu_service = MenuService()
+
     while True:
         result = menu_service.handle_main_menu(user)
-        if result == "create_client":
-            ClientCommands(current_user=user).create_client()
-        elif result == "create_event":
-            EventCommands(current_user=user).create_event()
-        elif result == "list_all_clients":
-            ClientCommands(role="gestion").list_clients()
+
+        if result in list(DIRECT_ACTIONS.values()):
+            menu_service.router.execute_direct_action(result)
         elif result == "logout":
             return "continue"
         elif result == "exit":
