@@ -3,6 +3,7 @@ from app.models import Department
 from app.views.menu import Menu, Submenu
 from app.utils.constants import MESSAGES, MENU_MAPPING
 from app.services.command_router import CommandRouter
+from app.utils.constants import DIRECT_ACTIONS
 
 
 class MenuService:
@@ -25,29 +26,28 @@ class MenuService:
 
         while True:
             choice = menu.get_choice()
+
             if menu.is_valid_choice(choice):
+                # Retour et déconnexion
                 if choice == "0":
                     return "logout"
 
+                # Récupération de la clé du sous-menu
                 submenu_key = MENU_MAPPING[dept_name.lower()].get(choice)
 
+                # Si action directe
                 if not submenu_key:
-                    submenu_slug = dept_name.lower()
-                    # Si pas de sous-menu, gérer les actions directes
-                    if submenu_slug == "commercial":
-                        if choice == "2":
-                            return "create_client"
-                        elif choice == "5":
-                            return "create_event"
-                    elif submenu_slug == "gestion":
-                        if choice == "5":
-                            return "list_all_clients"
+                    action = DIRECT_ACTIONS.get((dept_name.lower(), choice))
 
-                    self.console.print("[red]Sous-menu non trouvé[/red]")
-                    continue
+                    if action:
+                        self.router.execute_direct_action(action)
+                    else:
+                        self.console.print("[red]Action non trouvée[/red]")
+                        continue
 
                 result = self.handle_submenu(submenu_key)
 
+                # Retour au menu principal depuis le sous-menu
                 if result == "back_to_main":
                     break
 
@@ -86,17 +86,19 @@ class MenuService:
 
     def _route_to_command(self, submenu_key, choice):
         """Méthode pour diriger vers les bonnes commandes"""
-        if submenu_key == "gestion_collaborateurs":
-            self.router.execute("users", "gestion", choice)
-        elif submenu_key == "gestion_contrats":
-            self.router.execute("contracts", "gestion", choice)
-        elif submenu_key == "gestion_evenements":
-            self.router.execute("events", "gestion", choice)
-        elif submenu_key == "commercial_mes_clients":
-            self.router.execute("clients", "commercial", choice)
-        elif submenu_key == "commercial_mes_contrats":
-            self.router.execute("contracts", "commercial", choice)
-        elif submenu_key == "commercial_filtres_contrats":
-            self.router.execute("filters", "commercial", choice)
+
+        routing_map = {
+            "gestion_collaborateurs": ("users", "gestion"),
+            "gestion_contrats": ("contracts", "gestion"),
+            "gestion_evenements": ("events", "gestion"),
+            "commercial_mes_clients": ("clients", "commercial"),
+            "commercial_mes_contrats": ("contracts", "commercial"),
+            "commercial_filtres_contrats": ("filters", "commercial"),
+            "support_modifier_evenements": ("events", "support"),
+        }
+
+        if submenu_key in routing_map:
+            command_type, role = routing_map[submenu_key]
+            self.router.execute(command_type, role, choice)
         else:
             self.console.print(f"[red]Sous-menu '{submenu_key}' non implémenté[/red]")

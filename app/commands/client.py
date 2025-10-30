@@ -26,11 +26,11 @@ class ClientCommands:
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[red]")
 
-    def list_clients(self):
+    def list_clients(self, role="gestion"):
         """Lister tous les clients"""
         session = db_manager.get_session()
 
-        if self.role == "gestion":
+        if role in ["gestion", "support"]:
             clients = session.query(Client).all()
         else:
             clients = session.query(Client).filter(

@@ -1,7 +1,6 @@
 from app.views.contract import ContractView
 from app.models.contract import Contract
 from app.models.client import Client
-from app.commands.user import UserCommands
 from rich.console import Console
 from app.database.db import db_manager
 
@@ -15,7 +14,7 @@ class ContractCommands:
     def create_contract(self):
         """Créer un contrat"""
         contract_data = self.contract_view.get_contract_creation_form()
-        
+
         # Logique pour récupérer le commercial
         session = db_manager.get_session()
         try:
@@ -33,7 +32,7 @@ class ContractCommands:
                 contract_data['commercial_contact_id'] = self.contract_view.get_commercial_id()
         finally:
             session.close()
-        
+
         try:
             contract = Contract.create(**contract_data)
             self.console.print(f"[green]Contrat {contract.id} créé ![/green]")
@@ -43,13 +42,12 @@ class ContractCommands:
     def update_contract(self, role):
         """Modifier un contrat"""
         self.list_contracts(role=role)
-        
+
         contract_id = self.contract_view.get_contract_id()
         session = db_manager.get_session()
 
         try:
             contract = session.query(Contract).filter(Contract.id == contract_id).first()
-            print(contract)
 
             if not contract:
                 self.console.print(f"[red]Contrat avec l'ID {contract_id} introuvable.[/red]")
@@ -58,7 +56,9 @@ class ContractCommands:
             updated_data = self.contract_view.get_contract_update_form(contract)
 
             for key, value in updated_data.items():
-                if hasattr(contract, key) and value is not None and str(value).strip():
+                if hasattr(contract, key) and value is not None:
+                    if isinstance(value, str) and not value.strip():
+                        continue
                     setattr(contract, key, value)
 
             session.commit()
@@ -74,7 +74,7 @@ class ContractCommands:
         """Lister tous les contrats"""
         session = db_manager.get_session()
         try:
-            if role == "gestion":
+            if role in ["gestion", "support"]:
                 contracts = session.query(Contract).all()
             else:
                 contracts = session.query(Contract).filter(
@@ -93,7 +93,7 @@ class ContractCommands:
 
     def filter_signed_contracts(self):
         """Filtrer les contrats signés"""
-        self.filter_contracts("signed") 
+        self.filter_contracts("signed")
 
     def filter_unpaid_contracts(self):
         """Filtrer les contrats avec montant restant"""

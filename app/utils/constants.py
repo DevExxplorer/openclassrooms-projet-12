@@ -24,9 +24,8 @@ MENU = {
     "support": [
         {"option": "1", "title": "Mes événements assignés"},
         {"option": "2", "title": "Mettre à jour mes événements"},
-        {"option": "3", "title": "Filtrer les événements"},
-        {"option": "4", "title": "Consulter tous les clients"},
-        {"option": "5", "title": "Consulter tous les contrats"},
+        {"option": "3", "title": "Consulter tous les clients"},
+        {"option": "4", "title": "Consulter tous les contrats"},
         {"option": "0", "title": "Se déconnecter"}
     ]
 }
@@ -74,38 +73,6 @@ SUBMENUS = {
         {"option": "2", "title": "Contrats non entièrement payés"},
         {"option": "0", "title": "Retour au menu principal"}
     ],
-
-    # Sous-menus pour SUPPORT
-    "support_mes_evenements": [
-        {"option": "1", "title": "Lister mes événements assignés"},
-        {"option": "2", "title": "Rechercher un de mes événements"},
-        {"option": "0", "title": "Retour au menu principal"}
-    ],
-    "support_modifier_evenements": [
-        {"option": "1", "title": "Modifier les détails d'un événement"},
-        {"option": "2", "title": "Mettre à jour les notes d'un événement"},
-        {"option": "3", "title": "Modifier la localisation"},
-        {"option": "4", "title": "Modifier le nombre de participants"},
-        {"option": "0", "title": "Retour au menu principal"}
-    ],
-    "support_filtres_evenements": [
-        {"option": "1", "title": "Mes événements assignés"},
-        {"option": "2", "title": "Événements par date"},
-        {"option": "3", "title": "Événements par nombre de participants"},
-        {"option": "0", "title": "Retour au menu principal"}
-    ],
-    "support_consulter_clients": [
-        {"option": "1", "title": "Lister tous les clients"},
-        {"option": "2", "title": "Rechercher un client"},
-        {"option": "3", "title": "Voir les détails d'un client"},
-        {"option": "0", "title": "Retour au menu principal"}
-    ],
-    "support_consulter_contrats": [
-        {"option": "1", "title": "Lister tous les contrats"},
-        {"option": "2", "title": "Rechercher un contrat"},
-        {"option": "3", "title": "Voir les détails d'un contrat"},
-        {"option": "0", "title": "Retour au menu principal"}
-    ]
 }
 
 MENU_MAPPING = {
@@ -120,11 +87,15 @@ MENU_MAPPING = {
         "3": "commercial_mes_contrats",
         "4": "commercial_filtres_contrats"
     },
-    "support": {
-        "1": "support_mes_evenements",
-        "2": "support_modifier_evenements",
-        "3": "support_filtres_evenements",
-        "4": "support_consulter_clients",
-        "5": "support_consulter_contrats"
-    }
+    "support": {}
+}
+
+DIRECT_ACTIONS = {
+    ("commercial", "2"): "create_client",
+    ("commercial", "5"): "create_event",
+    ("gestion", "5"): "list_all_clients",
+    ("support", "1"): "list_assigned_events",
+    ("support", "2"): "update_event",
+    ("support", "3"): "list_all_clients",
+    ("support", "4"): "list_all_contracts"
 }

@@ -34,7 +34,7 @@ class Event(Base, DateTracked):
 
     def __str__(self):  # pragma: no cover
         return f"{self.name} - {self.contract.client.name if self.contract and self.contract.client else 'Client inconnu'}"
-    
+
     def create(**kwargs):
         """Créer un nouvel événement"""
         session = db_manager.get_session()

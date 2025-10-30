@@ -6,6 +6,7 @@ from app.models.user import User
 from app.database.db import db_manager
 from app.models.department import Department
 
+
 class EventCommands:
     def __init__(self, current_user):
         self.current_user = current_user
@@ -34,19 +35,28 @@ class EventCommands:
     def update_event(self):
         self.console.print("[yellow]Mise à jour d'un événement...[/yellow]")
 
+        try:
+            user_role = self.current_user.department.name
+        except AttributeError:
+            user_role = "gestion"
+
         # Liste des événements
-        self.list_events(role="gestion")
+        self.list_events(role=user_role)
 
         # Choix de l'événement
         session = db_manager.get_session()
         choice_event = self.console.input("Entrez l'ID de l'événement à modifier : ")
 
         # Rechercher l'événement dans la base de données
-        event = session.query(Event).filter(Event.id == choice_event).first()
+        try:
+            event_id = int(choice_event)
+        except ValueError:
+            self.console.print("[red]ID invalide. Veuillez entrer un nombre.[/red]")
+            return
 
-        # Vérifier si l'événement existe
+        event = session.query(Event).filter(Event.id == event_id).first()
         if not event:
-            self.console.print(f"[red]Événement avec l'ID {choice_event} introuvable.[/red]")
+            self.console.print(f"[red]Événement avec l'ID {event_id} introuvable.[/red]")
             return
 
         # Formulaire de mise à jour d'événement
@@ -55,11 +65,9 @@ class EventCommands:
         # Mettre à jour les attributs de l'événement
         for key, value in updated_event_data.items():
             if hasattr(event, key) and value is not None:
-                if isinstance(value, str):
-                    if value.strip():
-                        setattr(event, key, value)
-                else:
-                    setattr(event, key, value)
+                if isinstance(value, str) and not value.strip():
+                    continue
+                setattr(event, key, value)
 
         # Enregistrer les modifications dans la base de données
         try:
@@ -70,10 +78,15 @@ class EventCommands:
             self.console.print(f"[red]Erreur lors de la mise à jour : {e}[red]")
 
     def list_events(self, role=None, filter_no_support=False):
+        """Lister les événements"""
         session = db_manager.get_session()
         try:
             if role == "gestion":
                 events = session.query(Event).all()
+            elif role == "support":
+                events = session.query(Event).filter(
+                    Event.support_contact_id == self.current_user.id
+                ).all()
 
             if filter_no_support:
                 events = [event for event in events if not event.support_contact]
@@ -119,7 +132,7 @@ class EventCommands:
 
         # Rechercher le support dans la base de données
         support = session.query(User).join(User.department).filter(
-            User.id == choice_support, 
+            User.id == choice_support,
             Department.name == 'support'
         ).first()
 
@@ -138,12 +151,14 @@ class EventCommands:
         except Exception as e:
             session.rollback()
             self.console.print(f"[red]Erreur lors de l'assignation : {e}[red]")
+        finally:
+            session.close()
 
     def filter_events_without_support(self):
         """Filtrer les événements sans support assigné"""
         session = db_manager.get_session()
         try:
-            events = session.query(Event).filter(Event.support_contact_id == None).all()
+            events = session.query(Event).filter(Event.support_contact_id.is_(None)).all()
             if not events:
                 self.console.print("[green]Tous les événements ont un support assigné.[/green]")
                 return
