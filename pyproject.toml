@@ -17,6 +17,7 @@ argon2-cffi = "^25.1.0"
 rich = "^14.1.0"
 click = "^8.2.1"
 rich-click = "^1.8.9"
+sentry-sdk = "^2.43.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
