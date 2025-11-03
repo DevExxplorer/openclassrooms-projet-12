@@ -73,6 +73,7 @@ class User(Base, DateTracked):
         try:
             user = session.query(cls).filter(cls.username == username).first()
             if user and user.verify_password(password):
+                _ = user.department.name if user.department else None
                 return user
             return None
         finally:
@@ -224,3 +225,16 @@ class User(Base, DateTracked):
     def department_name(self):
         """Récupère le nom du département"""
         return self.department.name if self.department else None
+
+    @classmethod
+    def get_by_id(cls, user_id):
+        """Récupère un utilisateur par son ID"""
+        session = db_manager.get_session()
+        try:
+            user = session.query(cls).filter(cls.id == user_id).first()
+            if user:
+                # Forcer le chargement de la relation department
+                _ = user.department.name if user.department else None
+            return user
+        finally:
+            session.close()
