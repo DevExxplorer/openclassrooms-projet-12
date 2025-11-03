@@ -23,7 +23,10 @@ def show_menu():
 
     # Authentification
     auth_service = AuthService()
+
+    # Sinon, demander les identifiants
     user = auth_service.authenticate_user()
+
     if not user:
         console.print(MESSAGES["invalid_user"])
         return "continue"
@@ -39,6 +42,8 @@ def show_menu():
         if result in list(DIRECT_ACTIONS.values()):
             menu_service.router.execute_direct_action(result)
         elif result == "logout":
+            auth_service = AuthService()
+            auth_service.logout()
             return "continue"
         elif result == "exit":
             return "exit"
