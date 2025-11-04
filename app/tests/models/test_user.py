@@ -70,7 +70,7 @@ def test_authenticate_success(test_db):
 
     # Créer un utilisateur
     _user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -92,7 +92,7 @@ def test_authenticate_wrong_password(test_db):
     # Création  du département et de l'utilisateur
     dept = Department.create(name="support", description="Équipe support")
     user = User.create(
-        user_number="EMP002",
+        employee_number="EMP002",
         name="Marie Test",
         mail="marie@test.com",
         username="marie.test",
@@ -112,7 +112,7 @@ def test_authenticate_wrong_username(test_db):
     # Création du département et de l'utilisateur
     dept = Department.create(name="gestion", description="Équipe gestion")
     user = User.create(
-        user_number="EMP003",
+        employee_number="EMP003",
         name="Paul Test",
         mail="paul@test.com",
         username="paul.test",
@@ -146,7 +146,7 @@ def test_create_user_success(test_db):
     dept = Department.create(name="commercial", description="Équipe commerciale")
 
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -167,7 +167,7 @@ def test_create_user_missing_password(test_db):
 
     with pytest.raises(ValueError) as exc_info:
         User.create(
-            user_number="EMP002",
+            employee_number="EMP002",
             name="Test User",
             mail="test@test.com",
             username="test",
@@ -181,7 +181,7 @@ def test_create_user_invalid_department(test_db):
     """Création avec département inexistant"""
     with pytest.raises(ValueError) as exc_info:
         User.create(
-            user_number="EMP003",
+            employee_number="EMP003",
             name="Test User",
             mail="test@test.com",
             username="test",
@@ -199,7 +199,7 @@ def test_update_user_success(test_db):
     dept2 = Department.create(name="support", description="Support")
 
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -222,7 +222,7 @@ def test_update_user_wrong_role(test_db):
     """Mise à jour refusée pour mauvais rôle"""
     dept = Department.create(name="commercial", description="Commercial")
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -249,7 +249,7 @@ def test_update_user_invalid_department(test_db):
     dept = Department.create(name="commercial", description="Commercial")
 
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -272,7 +272,7 @@ def test_delete_user_success(test_db):
     """Suppression réussie par équipe gestion"""
     dept = Department.create(name="commercial", description="Commercial")
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -293,7 +293,7 @@ def test_delete_user_wrong_role(test_db):
     """Suppression refusée pour mauvais rôle"""
     dept = Department.create(name="commercial", description="Commercial")
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -320,7 +320,7 @@ def test_update_user_with_password(test_db):
     dept = Department.create(name="commercial", description="Commercial")
 
     user = User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="Jean Test",
         mail="jean@test.com",
         username="jean.test",
@@ -353,7 +353,7 @@ def test_get_all_users_with_data(test_db):
     dept = Department.create(name="commercial", description="Commercial")
 
     User.create(
-        user_number="EMP001",
+        employee_number="EMP001",
         name="User 1",
         mail="user1@test.com",
         username="user1",
@@ -362,7 +362,7 @@ def test_get_all_users_with_data(test_db):
     )
 
     User.create(
-        user_number="EMP002",
+        employee_number="EMP002",
         name="User 2",
         mail="user2@test.com",
         username="user2",
@@ -391,3 +391,52 @@ def test_department_name_without_department():
     user.department = None
 
     assert user.department_name is None
+
+def test_get_by_id_not_found(test_db):
+    """Test get_by_id avec ID inexistant"""
+    user = User.get_by_id(999)
+    assert user is None
+
+def test_create_user_auto_employee_number(test_db):
+    """Test création sans employee_number (auto-généré)"""
+    dept = Department.create(name="commercial", description="Commercial")
+    
+    user = User.create(
+        name="Test Auto",
+        mail="auto@test.com", 
+        username="auto.test",
+        password="password123",
+        department="commercial"
+    )
+    
+    assert user.employee_number.startswith("EMP")
+    assert len(user.employee_number) == 7
+
+def test_get_by_id_user_without_department(test_db):
+    """Test get_by_id avec utilisateur sans département"""
+    # Créer un utilisateur directement sans département pour ce test spécial
+    from app.database.db import db_manager
+    
+    session = db_manager.get_session()
+    try:
+        user = User(
+            employee_number="EMP999",
+            name="Test Sans Dept",
+            mail="sansdept@test.com",
+            username="sans.dept",
+            password_hash=User.hash_password("password123")
+            # Pas de department_id - il sera None
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        user_id = user.id
+    finally:
+        session.close()
+    
+    # Tester get_by_id avec cet utilisateur sans département
+    retrieved_user = User.get_by_id(user_id)
+    
+    assert retrieved_user is not None
+    assert retrieved_user.department is None
+    assert retrieved_user.department_name is None
