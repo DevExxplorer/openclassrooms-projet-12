@@ -5,6 +5,8 @@ from app.models.event import Event
 from app.models.user import User
 from app.database.db import db_manager
 from app.models.department import Department
+from app.models.contract import Contract
+from app.models.client import Client
 
 
 class EventCommands:
@@ -21,16 +23,32 @@ class EventCommands:
 
         # Choix du contrat
         choice_contract = self.console.input("Entrez l'ID du contrat : ")
-        self.console.print(f"[green]Vous avez choisi le contrat ID {choice_contract}[/green]")
 
-        # Formulaire de création d'événement
-        event_data = EventView(choice_contract).get_event_creation_form()
-
+        session = db_manager.get_session()
         try:
-            event = Event.create(**event_data)
-            self.console.print(f"[green]Événement {event.id} créé ![/green]")
+            # Vérifier que le contrat existe et est signé et appartient au commercial
+            contract = session.query(Contract).join(Contract.client).filter(
+                Contract.id == choice_contract,
+                Contract.is_signed == True,  # Contrat signé
+                Client.commercial_contact_id == self.current_user.id
+            ).first()
+            
+            if not contract:
+                self.console.print(f"[red]Contrat {choice_contract} introuvable, non signé, ou vous n'y êtes pas autorisé.[/red]")
+                return
+                
+            self.console.print(f"[green]Vous avez choisi le contrat ID {choice_contract}[/green]")
+
+            event_data = EventView(choice_contract).get_event_creation_form()
+
+            if event_data:
+                event = Event.create(**event_data)
+                self.console.print(f"[green]Événement {event.id} créé ![/green]")
+            
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
+        finally:
+            session.close()
 
     def update_event(self):
         self.console.print("[yellow]Mise à jour d'un événement...[/yellow]")
@@ -45,37 +63,60 @@ class EventCommands:
 
         # Choix de l'événement
         session = db_manager.get_session()
-        choice_event = self.console.input("Entrez l'ID de l'événement à modifier : ")
-
-        # Rechercher l'événement dans la base de données
         try:
-            event_id = int(choice_event)
-        except ValueError:
-            self.console.print("[red]ID invalide. Veuillez entrer un nombre.[/red]")
-            return
+            choice_event = self.console.input("Entrez l'ID de l'événement à modifier : ")
 
-        event = session.query(Event).filter(Event.id == event_id).first()
-        if not event:
-            self.console.print(f"[red]Événement avec l'ID {event_id} introuvable.[/red]")
-            return
+            # Validation de l'ID
+            try:
+                event_id = int(choice_event)
+            except ValueError:
+                self.console.print("[red]ID invalide. Veuillez entrer un nombre.[/red]")
+                return
 
-        # Formulaire de mise à jour d'événement
-        updated_event_data = EventView(choice_event).get_event_update_form(event)
+            # Récupérer l'événement en fonction du rôle de l'utilisateur
+            if user_role == "support":
+                # Support : seulement ses événements assignés
+                event = session.query(Event).filter(
+                    Event.id == event_id,
+                    Event.support_contact_id == self.current_user.id
+                ).first()
+                
+                if not event:
+                    self.console.print(f"[red]Événement {event_id} introuvable ou vous n'y êtes pas assigné.[/red]")
+                    return
+                    
+            elif user_role == "gestion":
+                # Gestion : tous les événements
+                event = session.query(Event).filter(Event.id == event_id).first()
+                
+                if not event:
+                    self.console.print(f"[red]Événement avec l'ID {event_id} introuvable.[/red]")
+                    return
+                    
+            else:
+                # Commercial : pas autorisé à modifier les événements
+                self.console.print(f"[red]Vous n'êtes pas autorisé à modifier les événements.[/red]")
+                return
 
-        # Mettre à jour les attributs de l'événement
-        for key, value in updated_event_data.items():
-            if hasattr(event, key) and value is not None:
-                if isinstance(value, str) and not value.strip():
-                    continue
-                setattr(event, key, value)
+            updated_event_data = EventView(choice_event).get_event_update_form(event)
 
-        # Enregistrer les modifications dans la base de données
-        try:
+            if not updated_event_data:
+                return
+
+            for key, value in updated_event_data.items():
+                if hasattr(event, key) and value is not None:
+                    if isinstance(value, str) and not value.strip():
+                        continue
+                    setattr(event, key, value)
+
             session.commit()
             self.console.print(f"[green]Événement {event.id} mis à jour ![/green]")
+
         except Exception as e:
             session.rollback()
-            self.console.print(f"[red]Erreur lors de la mise à jour : {e}[red]")
+            self.console.print(f"[red]Erreur lors de la mise à jour : {e}[/red]")
+        finally:
+            session.close()  # 🔧 N'oubliez pas de fermer la session
 
     def list_events(self, role=None, filter_no_support=False):
         """Lister les événements"""
@@ -100,57 +141,65 @@ class EventCommands:
     def assign_support(self):
         self.console.print("[yellow]Assigner un support à un événement...[/yellow]")
 
-        # Liste des événements sans support
-        self.filter_events_without_support()
-
-        # Choix de l'événement
         session = db_manager.get_session()
-        choice_event = self.console.input("Entrez l'ID de l'événement à assigner : ")
-
-        # Rechercher l'événement dans la base de données
-        event = session.query(Event).filter(Event.id == choice_event).first()
-
-        # Vérifier si l'événement existe
-        if not event:
-            self.console.print(f"[red]Événement avec l'ID {choice_event} introuvable.[/red]")
-            return
-
-        # Liste des supports disponibles
-        supports = session.query(User).join(User.department).filter(
-            Department.name == 'support'
-        ).all()
-
-        if not supports:
-            self.console.print("[red]Aucun support disponible.[/red]")
-            return
-
-        self.console.print("Supports disponibles :")
-        self.event_view.display_supports_available(supports)
-
-        # Choix du support
-        choice_support = self.console.input("Entrez l'ID du support à assigner : ")
-
-        # Rechercher le support dans la base de données
-        support = session.query(User).join(User.department).filter(
-            User.id == choice_support,
-            Department.name == 'support'
-        ).first()
-
-        # Vérifier si le support existe
-        if not support:
-            self.console.print(f"[red]Support avec l'ID {choice_support} introuvable ou n'est pas un support.[/red]")
-            return
-
-        # Assigner le support à l'événement
-        event.support_contact_id = support.id
-
-        # Enregistrer les modifications dans la base de données
+        
         try:
+            # Vérifier s'il y a des événements sans support
+            events_without_support = session.query(Event).filter(Event.support_contact_id.is_(None)).all()
+            
+            if not events_without_support:
+                self.console.print("[yellow]Aucun événement sans support trouvé.[/yellow]")
+                return
+
+            # Afficher les événements sans support
+            self.filter_events_without_support()
+
+            choice_event = self.console.input("Entrez l'ID de l'événement à assigner : ")
+
+            # Rechercher l'événement dans la base de données
+            event = session.query(Event).filter(Event.id == choice_event).first()
+
+            # Vérifier si l'événement existe
+            if not event:
+                self.console.print(f"[red]Événement avec l'ID {choice_event} introuvable.[/red]")
+                return
+
+            # Vérifier les supports disponibles
+            supports = session.query(User).join(User.department).filter(
+                Department.name == 'support'
+            ).all()
+
+            if not supports:
+                self.console.print("[red]Aucun support disponible.[/red]")
+                return
+
+            self.console.print("Supports disponibles :")
+            self.event_view.display_supports_available(supports)
+
+            # Id du support à assigner
+            choice_support = self.console.input("Entrez l'ID du support à assigner : ")
+
+            # Rechercher le support dans la base de données
+            support = session.query(User).join(User.department).filter(
+                User.id == choice_support,
+                Department.name == 'support'
+            ).first()
+
+            # Vérifier si le support existe
+            if not support:
+                self.console.print(f"[red]Support avec l'ID {choice_support} introuvable ou n'est pas un support.[/red]")
+                return
+
+            # Assigner le support à l'événement
+            event.support_contact_id = support.id
+
+            # Enregistrer les modifications dans la base de données
             session.commit()
             self.console.print(f"[green]Support {support.name} assigné à l'événement {event.id} ![/green]")
+
         except Exception as e:
             session.rollback()
-            self.console.print(f"[red]Erreur lors de l'assignation : {e}[red]")
+            self.console.print(f"[red]Erreur lors de l'assignation : {e}[/red]")
         finally:
             session.close()
 
