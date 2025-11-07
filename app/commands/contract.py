@@ -47,10 +47,26 @@ class ContractCommands:
         session = db_manager.get_session()
 
         try:
-            contract = session.query(Contract).filter(Contract.id == contract_id).first()
+            if role == "commercial":
+                # Commercial : ne peut modifier que ses propres contrats
+                contract = session.query(Contract).join(Contract.client).filter(
+                    Contract.id == contract_id,
+                    Client.commercial_contact_id == self.current_user.id
+                ).first()
 
-            if not contract:
-                self.console.print(f"[red]Contrat avec l'ID {contract_id} introuvable.[/red]")
+                if not contract:
+                    self.console.print(f"[red]Contrat avec l'ID {contract_id} introuvable.[/red]")
+                    return
+            elif role == "gestion":
+                # Gestion : peut modifier tous les contrats
+                contract = session.query(Contract).filter(Contract.id == contract_id).first()
+                
+                if not contract:
+                    self.console.print(f"[red]Contrat avec l'ID {contract_id} introuvable.[/red]")
+                    return
+            else:
+                # Support : ne peut pas modifier les contrats
+                self.console.print(f"[red]Vous n'êtes pas autorisé à modifier les contrats.[/red]")
                 return
 
             updated_data = self.contract_view.get_contract_update_form(contract)
