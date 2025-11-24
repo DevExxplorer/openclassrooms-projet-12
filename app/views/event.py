@@ -15,24 +15,44 @@ class EventView:
 
         self.console.print("[bold blue]Création d'un nouvel événement[/bold blue]\n")
 
-        event_name = Prompt.ask("Nom de l'événement : ")
-        date_start_input = Prompt.ask(
-            "Date/heure de début (DD-MM-YYYY HH:MM)",
-        )
-        date_end_input = Prompt.ask(
-            "Date/heure de fin (DD-MM-YYYY HH:MM)",
-        )
-        event_location = Prompt.ask("Localisation de l'événement : ")
-        event_attendees = Prompt.ask("Nombre de participants : ")
-        event_notes = Prompt.ask("Notes supplémentaires : ")
+        event_name = Prompt.ask("Nom de l'événement ")
 
-        # Conversion au format PostgreSQL
-        try:
-            date_start = datetime.strptime(date_start_input, "%d-%m-%Y %H:%M")
-            date_end = datetime.strptime(date_end_input, "%d-%m-%Y %H:%M")
-        except ValueError:
-            self.console.print("[red]Format de date invalide ! Utilisez DD-MM-YYYY HH:MM[/red]")
-            return None
+        while True:
+            date_start_input = Prompt.ask("Date/heure de début (DD-MM-YYYY HH:MM)")
+
+            try:
+                date_start = datetime.strptime(date_start_input, "%d-%m-%Y %H:%M")
+                
+                # Vérifier que la date de début n'est pas dans le passé
+                if date_start <= datetime.now():
+                    self.console.print("[red]❌ La date de début ne peut pas être dans le passé ![/red]")
+                    continue
+                break
+            except ValueError:
+                self.console.print("[red]Format de date invalide ! Utilisez DD-MM-YYYY HH:MM[/red]")
+
+        while True:
+            date_end_input = Prompt.ask("Date/heure de fin (DD-MM-YYYY HH:MM)")
+            
+            try:
+                date_end = datetime.strptime(date_end_input, "%d-%m-%Y %H:%M")
+                
+                # Vérifier que la date de début n'est pas dans le passé
+                if date_end <= datetime.now():
+                    self.console.print("[red]❌ La date de fin ne peut pas être dans le passé ![/red]")
+                    continue
+
+                # Vérifier que la date de fin est après la date de début
+                if date_end <= date_start:
+                    self.console.print("[red]❌ La date de fin doit être après la date de début ![/red]")
+                    continue
+                break
+            except ValueError:
+                self.console.print("[red]Format de date invalide ! Utilisez DD-MM-YYYY HH:MM[/red]")
+
+        event_location = Prompt.ask("Localisation de l'événement ")
+        event_attendees = Prompt.ask("Nombre de participants ")
+        event_notes = Prompt.ask("Notes supplémentaires ")
 
         return {
             'contract_id': self.contract_id,

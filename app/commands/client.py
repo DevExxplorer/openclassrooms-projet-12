@@ -55,6 +55,11 @@ class ClientCommands:
             self.console.print(f"[red]Client avec l'ID {client_id} introuvable.[/red]")
             return
 
+        # Vérifier les permissions
+        if client.commercial_contact_id != self.current_user.id:
+            self.console.print(f"[red]Vous n'êtes pas autorisé à modifier ce client. Il est assigné à un autre commercial.[/red]")
+            return
+
         # Obtenir les nouvelles données du client
         updated_data = self.view.get_client_update_form(client)
 

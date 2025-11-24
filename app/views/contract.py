@@ -20,8 +20,8 @@ class ContractView:
         ClientCommands(role="gestion").list_clients()
         client_id = Prompt.ask("ID du client")
 
-        total_amount = Prompt.ask("Montant total")
-        remaining_amount = Prompt.ask("Montant restant à payer")
+        total_amount = Prompt.ask("Montant total", default=0.00)
+        remaining_amount = Prompt.ask("Montant restant à payer", default=0.00)
         status = Prompt.ask("Statut", choices=["signé", "non signé"], default="non signé")
 
         return {
