@@ -4,6 +4,8 @@ from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
 from app.models.contract import Contract
 from app.models.user import User
+from app.models.department import Department
+from app.models.client import Client
 import sentry_sdk
 
 
@@ -35,6 +37,49 @@ class Event(Base, DateTracked):
 
     def __str__(self):  # pragma: no cover
         return f"{self.name} - {self.contract.client.name if self.contract and self.contract.client else 'Client inconnu'}"
+
+    def update(self, **kwargs):
+        """Mettre à jour l'événement actuel"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            
+            # Merge l'objet dans la session courante
+            event = session.merge(self)
+            
+            # Mise à jour des attributs
+            for key, value in kwargs.items():
+                if hasattr(event, key) and value is not None:
+                    # Ignorer les chaînes vides
+                    if isinstance(value, str) and not value.strip():
+                        continue
+                    setattr(event, key, value)
+
+            session.commit()
+            session.refresh(event)
+            
+            # Mettre à jour l'instance actuelle
+            for key, value in kwargs.items():
+                if hasattr(self, key) and value is not None:
+                    if isinstance(value, str) and not value.strip():
+                        continue
+                    setattr(self, key, value)
+            return event
+
+        except Exception as e:
+            if session:
+                session.rollback()
+            sentry_sdk.set_context("event_model_update", {
+                "action": "update_error",
+                "event_id": self.id,
+                "update_data": kwargs,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
 
     @classmethod
     def create(cls, **kwargs):
@@ -86,6 +131,155 @@ class Event(Base, DateTracked):
             })
             sentry_sdk.capture_exception(e)
             raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_events_without_support(cls):
+        """Récupérer les événements sans support assigné"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            return session.query(cls).filter(cls.support_contact_id.is_(None)).all()
+        except Exception as e:
+            sentry_sdk.set_context("event_model_get_no_support", {
+                "action": "get_without_support_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    def assign_support(self, support_user_id):
+        """Assigner un support à l'événement"""
+        return self.update(support_contact_id=support_user_id)
+
+    @classmethod
+    def get_by_id(cls, event_id):
+        """Récupérer un événement par son ID"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            event = session.query(cls).filter(cls.id == event_id).first()
+            if not event:
+                raise ValueError(f"Événement avec l'ID {event_id} introuvable")
+            return event
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_available_supports(cls):
+        """Récupérer la liste des supports disponibles"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            supports = session.query(User).join(User.department).filter(
+                Department.name == 'support'
+            ).all()
+            return supports
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def validate_support_user(cls, support_id):
+        """Valider qu'un utilisateur est bien un support"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            support = session.query(User).join(User.department).filter(
+                User.id == support_id,
+                Department.name == 'support'
+            ).first()
+            return support
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return None
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_all(cls):
+        """Récupérer tous les événements"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            return session.query(cls).all()
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_by_support_user(cls, user_id):
+        """Récupérer les événements assignés à un utilisateur support"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            return session.query(cls).filter(cls.support_contact_id == user_id).all()
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def validate_contract_access(cls, contract_id, user_id):
+        """Valider que l'utilisateur a accès au contrat"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            contract = session.query(Contract).join(Contract.client).filter(
+                Contract.id == contract_id,
+                Contract.is_signed,
+                Client.commercial_contact_id == user_id
+            ).first()
+            return contract is not None
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return False
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_event_with_permissions(cls, event_id, user_id, user_role):
+        """Récupérer un événement avec validation des permissions"""
+        session = None
+        try:
+            session = db_manager.get_session()
+
+            if user_role == "support":
+                # Support : seulement ses événements assignés
+                event = session.query(cls).filter(
+                    cls.id == event_id,
+                    cls.support_contact_id == user_id
+                ).first()
+            elif user_role == "gestion":
+                # Gestion : tous les événements
+                event = session.query(cls).filter(cls.id == event_id).first()
+            else:
+                # Commercial : pas autorisé
+                return None
+
+            return event
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return None
         finally:
             if session:
                 session.close()
