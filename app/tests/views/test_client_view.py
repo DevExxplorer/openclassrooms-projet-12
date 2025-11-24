@@ -1,10 +1,9 @@
-import pytest
+import pytest # noqa
 from unittest.mock import Mock, patch
 from app.views.client import ClientView
 
 
 class TestClientView:
-    
     def setup_method(self):
         self.client_view = ClientView()
         self.client_view.console = Mock()
@@ -12,12 +11,11 @@ class TestClientView:
     def test_get_client_creation_form(self):
         """Test formulaire création client"""
         self.client_view.console.input.side_effect = ["Test Client", "test@test.com", "+33123456789", "Test Corp"]
-        
         result = self.client_view.get_client_creation_form()
-        
+
         assert result == {
             "name": "Test Client",
-            "mail": "test@test.com", 
+            "mail": "test@test.com",
             "phone": "+33123456789",
             "company_name": "Test Corp"
         }
@@ -38,7 +36,7 @@ class TestClientView:
         mock_client.commercial_contact_id = 1
         mock_client.created_at.strftime.return_value = "01-01-2024"
         mock_client.last_updated_at.strftime.return_value = "01-01-2024"
-        
+
         self.client_view.display_clients([mock_client])
         self.client_view.console.print.assert_called()
 
@@ -56,15 +54,13 @@ class TestClientView:
         mock_client.mail = "old@test.com"
         mock_client.phone = "+33987654321"
         mock_client.company_name = "Old Corp"
-        
         mock_prompt.ask.side_effect = ["New Name", "new@test.com", "+33111111111", "New Corp"]
-        
+
         result = self.client_view.get_client_update_form(mock_client)
-        
         assert result == {
             "name": "New Name",
             "mail": "new@test.com",
-            "phone": "+33111111111", 
+            "phone": "+33111111111",
             "company_name": "New Corp"
         }
 

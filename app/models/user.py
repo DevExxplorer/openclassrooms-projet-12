@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
 from app.models.department import Department
+import sentry_sdk
 
 
 class User(Base, DateTracked):
@@ -69,22 +70,35 @@ class User(Base, DateTracked):
     @classmethod
     def authenticate(cls, username, password):
         """Authentifier un utilisateur"""
-        session = db_manager.get_session()
+        session = None
+
         try:
+            session = db_manager.get_session()
             user = session.query(cls).filter(cls.username == username).first()
             if user and user.verify_password(password):
                 _ = user.department.name if user.department else None
                 return user
             return None
+
+        except Exception as e:
+            sentry_sdk.set_context("user_model_authenticate", {
+                "username": username,
+                "action": "authenticate_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def create(cls, **kwargs):
         """Créer un nouvel utilisateur avec mot de passe haché"""
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
+
             # Générer automatiquement le numéro d'employé
             kwargs['employee_number'] = cls._generate_employee_number()
 
@@ -111,10 +125,19 @@ class User(Base, DateTracked):
             return user
 
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+
+            sentry_sdk.set_context("user_model_create", {
+                "action": "create_error",
+                "user_data": kwargs,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def update(cls, user_id, role, **kwargs):
@@ -122,9 +145,10 @@ class User(Base, DateTracked):
         Mettre à jour un utilisateur
         Seul l'equipe de gestion peut modifier un utilisateur
         """
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
+
             # Contrôle de permission
             if role != 'gestion':
                 raise PermissionError("Seule l'équipe gestion peut modifier les utilisateurs")
@@ -156,10 +180,20 @@ class User(Base, DateTracked):
             return user
 
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+            sentry_sdk.set_context("user_model_update", {
+                "user_id": user_id,
+                "role": role,
+                "action": "update_error",
+                "update_data": kwargs,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def delete(cls, user_id, role):
@@ -167,9 +201,10 @@ class User(Base, DateTracked):
         Supprimer un utilisateur
         Seule l'équipe gestion peut le faire
         """
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
+
             # Contrôle de permission
             if role != 'gestion':
                 raise PermissionError("Seule l'équipe gestion peut supprimer les utilisateurs")
@@ -183,31 +218,49 @@ class User(Base, DateTracked):
             return True
 
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+            sentry_sdk.set_context("user_model_delete", {
+                "user_id": user_id,
+                "role": role,
+                "action": "delete_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def get_all(cls):
         """Récupérer tous les utilisateurs"""
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
             users = session.query(cls).all()
             return users
+
         except Exception as e:  # pragma: no cover
-            session.rollback()
+            if session:
+                session.rollback()
+            sentry_sdk.set_context("user_model_get_all", {
+                "action": "get_all_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def _generate_employee_number(cls):
         """Générer un numéro d'employé unique"""
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
+
             while True:
                 # Générer un numéro aléatoire à 4 chiffres
                 random_number = random.randint(1000, 9999)
@@ -218,8 +271,16 @@ class User(Base, DateTracked):
                 if not existing:
                     return employee_number
 
+        except Exception as e:
+            sentry_sdk.set_context("user_model_generate_employee_number", {
+                "action": "generate_employee_number_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @property
     def department_name(self):
@@ -229,12 +290,24 @@ class User(Base, DateTracked):
     @classmethod
     def get_by_id(cls, user_id):
         """Récupère un utilisateur par son ID"""
-        session = db_manager.get_session()
+        session = None
+
         try:
+            session = db_manager.get_session()
             user = session.query(cls).filter(cls.id == user_id).first()
             if user:
                 # Forcer le chargement de la relation department
                 _ = user.department.name if user.department else None
             return user
+
+        except Exception as e:
+            sentry_sdk.set_context("user_model_get_by_id", {
+                "user_id": user_id,
+                "action": "get_by_id_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
         finally:
-            session.close()
+            if session:
+                session.close()

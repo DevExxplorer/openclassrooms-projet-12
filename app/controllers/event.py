@@ -7,6 +7,7 @@ from app.database.db import db_manager
 from app.models.department import Department
 from app.models.contract import Contract
 from app.models.client import Client
+import sentry_sdk
 
 
 class EventCommands:
@@ -16,27 +17,33 @@ class EventCommands:
         self.event_view = EventView(contract_id=None)
 
     def create_event(self):
-        self.console.print("[yellow]Création d'un nouvel événement...[/yellow]")
+        """Créer un nouvel événement"""
+        session = None
+        choice_contract = None
+        event_data = None
 
-        # Tableau des contrats signés
-        ContractCommands(self.current_user).filter_signed_contracts()
-
-        # Choix du contrat
-        choice_contract = self.console.input("Entrez l'ID du contrat : ")
-
-        session = db_manager.get_session()
         try:
+            self.console.print("[yellow]Création d'un nouvel événement...[/yellow]")
+
+            # Tableau des contrats signés
+            ContractCommands(self.current_user).filter_signed_contracts()
+
+            # Choix du contrat
+            choice_contract = self.console.input("Entrez l'ID du contrat : ")
+
+            session = db_manager.get_session()
+
             # Vérifier que le contrat existe et est signé et appartient au commercial
             contract = session.query(Contract).join(Contract.client).filter(
                 Contract.id == choice_contract,
-                Contract.is_signed == True,  # Contrat signé
+                Contract.is_signed,
                 Client.commercial_contact_id == self.current_user.id
             ).first()
-            
+
             if not contract:
                 self.console.print(f"[red]Contrat {choice_contract} introuvable, non signé, ou vous n'y êtes pas autorisé.[/red]")
                 return
-                
+
             self.console.print(f"[green]Vous avez choisi le contrat ID {choice_contract}[/green]")
 
             event_data = EventView(choice_contract).get_event_creation_form()
@@ -44,26 +51,43 @@ class EventCommands:
             if event_data:
                 event = Event.create(**event_data)
                 self.console.print(f"[green]Événement {event.id} créé ![/green]")
-            
+
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
+
+            sentry_sdk.set_context("event_creation", {
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "action": "create_error",
+                "contract_id": choice_contract,
+                "event_data": event_data if event_data else None
+            })
+
+            # Capturer l'exception avec Sentry
+            sentry_sdk.capture_exception(e)
         finally:
-            session.close()
+            if session:
+                session.close()
 
     def update_event(self):
-        self.console.print("[yellow]Mise à jour d'un événement...[/yellow]")
+        """Mettre à jour un événement existant"""
+        session = None
+        event_id = None
+        user_role = None
 
         try:
-            user_role = self.current_user.department.name
-        except AttributeError:
-            user_role = "gestion"
+            self.console.print("[yellow]Mise à jour d'un événement...[/yellow]")
 
-        # Liste des événements
-        self.list_events(role=user_role)
+            try:
+                user_role = self.current_user.department.name
+            except AttributeError:
+                user_role = "gestion"
 
-        # Choix de l'événement
-        session = db_manager.get_session()
-        try:
+            # Liste des événements
+            self.list_events(role=user_role)
+
+            # Choix de l'événement
+            session = db_manager.get_session()
+
             choice_event = self.console.input("Entrez l'ID de l'événement à modifier : ")
 
             # Validation de l'ID
@@ -80,22 +104,22 @@ class EventCommands:
                     Event.id == event_id,
                     Event.support_contact_id == self.current_user.id
                 ).first()
-                
-                if not event:
-                    self.console.print(f"[red]Événement {event_id} introuvable ou vous n'y êtes pas assigné.[/red]")
-                    return
-                    
+
+            if not event:
+                self.console.print(f"[red]Événement {event_id} introuvable ou vous n'y êtes pas assigné.[/red]")
+                return
+
             elif user_role == "gestion":
                 # Gestion : tous les événements
                 event = session.query(Event).filter(Event.id == event_id).first()
-                
+
                 if not event:
                     self.console.print(f"[red]Événement avec l'ID {event_id} introuvable.[/red]")
                     return
-                    
+
             else:
                 # Commercial : pas autorisé à modifier les événements
-                self.console.print(f"[red]Vous n'êtes pas autorisé à modifier les événements.[/red]")
+                self.console.print("[red]Vous n'êtes pas autorisé à modifier les événements.[/red]")
                 return
 
             updated_event_data = EventView(choice_event).get_event_update_form(event)
@@ -113,15 +137,28 @@ class EventCommands:
             self.console.print(f"[green]Événement {event.id} mis à jour ![/green]")
 
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
             self.console.print(f"[red]Erreur lors de la mise à jour : {e}[/red]")
+
+            sentry_sdk.set_context("event_update", {
+                "event_id": event_id,
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "user_role": user_role,
+                "action": "update_error"
+            })
+            sentry_sdk.capture_exception(e)
         finally:
-            session.close()  # 🔧 N'oubliez pas de fermer la session
+            if session:
+                session.close()
 
     def list_events(self, role=None, filter_no_support=False):
         """Lister les événements"""
-        session = db_manager.get_session()
+        session = None
+
         try:
+            session = db_manager.get_session()
+
             if role == "gestion":
                 events = session.query(Event).all()
             elif role == "support":
@@ -133,20 +170,35 @@ class EventCommands:
                 events = [event for event in events if not event.support_contact]
 
             return self.event_view.display_event_list(events)
+
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
+
+            sentry_sdk.set_context("event_listing", {
+                "role": role,
+                "filter_no_support": filter_no_support,
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "action": "list_error"
+            })
+            sentry_sdk.capture_exception(e)
         finally:
-            session.close()
+            if session:
+                session.close()
 
     def assign_support(self):
-        self.console.print("[yellow]Assigner un support à un événement...[/yellow]")
+        """Assigner un support à un événement sans support"""
+        session = None
+        choice_event = None
+        choice_support = None
 
-        session = db_manager.get_session()
-        
         try:
+            self.console.print("[yellow]Assigner un support à un événement...[/yellow]")
+
+            session = db_manager.get_session()
+
             # Vérifier s'il y a des événements sans support
             events_without_support = session.query(Event).filter(Event.support_contact_id.is_(None)).all()
-            
+
             if not events_without_support:
                 self.console.print("[yellow]Aucun événement sans support trouvé.[/yellow]")
                 return
@@ -198,22 +250,42 @@ class EventCommands:
             self.console.print(f"[green]Support {support.name} assigné à l'événement {event.id} ![/green]")
 
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
             self.console.print(f"[red]Erreur lors de l'assignation : {e}[/red]")
+
+            sentry_sdk.set_context("event_support_assignment", {
+                "event_id": choice_event,
+                "support_id": choice_support,
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "action": "assign_support_error"
+            })
+            sentry_sdk.capture_exception(e)
         finally:
-            session.close()
+            if session:
+                session.close()
 
     def filter_events_without_support(self):
         """Filtrer les événements sans support assigné"""
-        session = db_manager.get_session()
+        session = None
+
         try:
+            session = db_manager.get_session()
+
             events = session.query(Event).filter(Event.support_contact_id.is_(None)).all()
             if not events:
                 self.console.print("[green]Tous les événements ont un support assigné.[/green]")
                 return
 
             return self.event_view.display_event_list(events)
+
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
+            sentry_sdk.set_context("event_filter_no_support", {
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "action": "filter_no_support_error"
+            })
+            sentry_sdk.capture_exception(e)
         finally:
-            session.close()
+            if session:
+                session.close()

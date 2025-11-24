@@ -4,6 +4,7 @@ from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
 from app.models.contract import Contract
 from app.models.user import User
+import sentry_sdk
 
 
 class Event(Base, DateTracked):
@@ -35,11 +36,14 @@ class Event(Base, DateTracked):
     def __str__(self):  # pragma: no cover
         return f"{self.name} - {self.contract.client.name if self.contract and self.contract.client else 'Client inconnu'}"
 
-    def create(**kwargs):
+    @classmethod
+    def create(cls, **kwargs):
         """Créer un nouvel événement"""
-        session = db_manager.get_session()
+        session = None
 
         try:
+            session = db_manager.get_session()
+
             # Vérification de l'existence du contrat
             contract = session.query(Contract).filter(Contract.id == kwargs.get('contract_id')).first()
             if not contract:
@@ -53,7 +57,7 @@ class Event(Base, DateTracked):
                     raise ValueError(f"Support avec l'ID {kwargs.get('support_contact_id')} introuvable")
 
             # Création de l'événement
-            event = Event(
+            event = cls(
                 name=kwargs.get('name'),
                 contract_id=kwargs.get('contract_id'),
                 date_start=kwargs.get('date_start'),
@@ -65,12 +69,23 @@ class Event(Base, DateTracked):
             )
             session.add(event)
             session.commit()
-
             session.refresh(event)
 
             return event
+
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+
+            sentry_sdk.set_context("event_model_create", {
+                "action": "create_error",
+                "event_data": kwargs,
+                "contract_id": kwargs.get('contract_id'),
+                "support_contact_id": kwargs.get('support_contact_id'),
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()

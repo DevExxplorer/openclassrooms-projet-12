@@ -1,9 +1,6 @@
-import pytest
-
+import pytest # noqa
 from app.models.user import User
 from app.models.department import Department
-
-# Tests hash_password method
 
 
 def test_hash_password():
@@ -389,34 +386,36 @@ def test_department_name_with_department():
 def test_department_name_without_department():
     user = User()
     user.department = None
-
     assert user.department_name is None
+
+
+def test_create_user_auto_employee_number(test_db):
+    """Test création sans employee_number (auto-généré)"""
+    dept = Department.create(name="commercial", description="Commercial")
+
+    user = User.create(
+        name="Test Auto",
+        mail="auto@test.com",
+        username="auto.test",
+        password="password123",
+        department="commercial"
+    )
+
+    assert user.employee_number.startswith("EMP")
+    assert len(user.employee_number) == 7
+
 
 def test_get_by_id_not_found(test_db):
     """Test get_by_id avec ID inexistant"""
     user = User.get_by_id(999)
     assert user is None
 
-def test_create_user_auto_employee_number(test_db):
-    """Test création sans employee_number (auto-généré)"""
-    dept = Department.create(name="commercial", description="Commercial")
-    
-    user = User.create(
-        name="Test Auto",
-        mail="auto@test.com", 
-        username="auto.test",
-        password="password123",
-        department="commercial"
-    )
-    
-    assert user.employee_number.startswith("EMP")
-    assert len(user.employee_number) == 7
 
 def test_get_by_id_user_without_department(test_db):
     """Test get_by_id avec utilisateur sans département"""
     # Créer un utilisateur directement sans département pour ce test spécial
     from app.database.db import db_manager
-    
+
     session = db_manager.get_session()
     try:
         user = User(
@@ -433,10 +432,10 @@ def test_get_by_id_user_without_department(test_db):
         user_id = user.id
     finally:
         session.close()
-    
+
     # Tester get_by_id avec cet utilisateur sans département
     retrieved_user = User.get_by_id(user_id)
-    
+
     assert retrieved_user is not None
     assert retrieved_user.department is None
     assert retrieved_user.department_name is None

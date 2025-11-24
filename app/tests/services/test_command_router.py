@@ -1,6 +1,5 @@
-import pytest
+import pytest # noqa
 from unittest.mock import Mock, patch
-
 from app.services.command_router import CommandRouter
 
 
@@ -14,10 +13,10 @@ class TestCommandRouter:
         self.mock_user.name = "Test User"
 
         # Mock tous les imports dans le constructeur
-        with patch('app.services.command_router.UserCommands') as mock_user_cmd, \
-            patch('app.services.command_router.ContractCommands') as mock_contract_cmd, \
-            patch('app.services.command_router.ClientCommands') as mock_client_cmd, \
-            patch('app.services.command_router.EventCommands') as mock_event_cmd:
+        with (patch('app.services.command_router.UserCommands') as mock_user_cmd,
+                patch('app.services.command_router.ContractCommands') as mock_contract_cmd,
+                patch('app.services.command_router.ClientCommands') as mock_client_cmd,
+                patch('app.services.command_router.EventCommands') as mock_event_cmd):
 
             self.command_router = CommandRouter(current_user=self.mock_user)
 
@@ -37,9 +36,9 @@ class TestCommandRouter:
     def test_init_without_current_user(self):
         """Test initialisation sans current_user"""
         with patch('app.services.command_router.UserCommands'), \
-            patch('app.services.command_router.ContractCommands'), \
-            patch('app.services.command_router.ClientCommands'), \
-            patch('app.services.command_router.EventCommands'):
+                patch('app.services.command_router.ContractCommands'), \
+                patch('app.services.command_router.ClientCommands'), \
+                patch('app.services.command_router.EventCommands'):
 
             router = CommandRouter()
             assert router.current_user is None
@@ -229,9 +228,9 @@ class TestCommandRouter:
     def test_commands_initialized_with_current_user(self):
         """Test que les commandes sont initialisées avec current_user"""
         with patch('app.services.command_router.UserCommands') as mock_user_cmd, \
-            patch('app.services.command_router.ContractCommands') as mock_contract_cmd, \
-            patch('app.services.command_router.ClientCommands') as mock_client_cmd, \
-            patch('app.services.command_router.EventCommands') as mock_event_cmd:
+                patch('app.services.command_router.ContractCommands') as mock_contract_cmd, \
+                patch('app.services.command_router.ClientCommands') as mock_client_cmd, \
+                patch('app.services.command_router.EventCommands') as mock_event_cmd:
 
             test_user = Mock()
             CommandRouter(current_user=test_user)

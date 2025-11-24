@@ -1,5 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+import pytest  # noqa
+from unittest.mock import Mock, patch
 
 from app.controllers.contract import ContractCommands
 
@@ -196,10 +196,10 @@ class TestContractCommands:
         self.contract_commands.filter_contracts = Mock()
         self.contract_commands.filter_unsigned_contracts()
         self.contract_commands.filter_contracts.assert_called_with("unsigned")
-        
+
         self.contract_commands.filter_signed_contracts()
         self.contract_commands.filter_contracts.assert_called_with("signed")
-        
+
         self.contract_commands.filter_unpaid_contracts()
         self.contract_commands.filter_contracts.assert_called_with("unpaid")
 

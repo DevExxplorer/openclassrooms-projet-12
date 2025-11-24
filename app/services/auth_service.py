@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from rich.console import Console
 from app.models.user import User
+import sentry_sdk
 
 
 class AuthService:
@@ -14,20 +15,30 @@ class AuthService:
         self.token_file = Path.home() / '.epic_token'
 
     def authenticate_user(self):
-        # Vérifier s'il y a déjà un token valide
-        existing_user = self._check_existing_token()
-        if existing_user:
-            return existing_user
+        try:
+            # Vérifier s'il y a déjà un token valide
+            existing_user = self._check_existing_token()
+            if existing_user:
+                return existing_user
 
-        # Sinon, connexion normale
-        self.console.print("Veuillez vous connecter pour accéder à l'application.\n")
-        username = input("Nom d'utilisateur : ")
-        password = getpass.getpass("Mot de passe : ")
+            # Sinon, connexion normale
+            self.console.print("Veuillez vous connecter pour accéder à l'application.\n")
+            username = input("Nom d'utilisateur : ")
+            password = getpass.getpass("Mot de passe : ")
 
-        user = User.authenticate(username, password)
-        if user:
-            self._save_token(user)
-        return user
+            user = User.authenticate(username, password)
+            if user:
+                self._save_token(user)
+            return user
+
+        except Exception as e:
+            sentry_sdk.set_context("auth_service_authenticate", {
+                "action": "authenticate_error",
+                "username": username if 'username' in locals() else None,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
 
     def _check_existing_token(self):
         """Vérifie si un token valide existe et retourne l'objet User"""
@@ -42,30 +53,60 @@ class AuthService:
                 # Récupérer l'objet User depuis la base
                 user = User.get_by_id(payload['user_id'])
                 return user
+
         except Exception as e:
             print(f"Erreur token: {e}")
             if self.token_file.exists():
                 self.token_file.unlink()
+
+            sentry_sdk.set_context("auth_service_check_token", {
+                "action": "check_token_error",
+                "token_file_exists": self.token_file.exists() if self.token_file else None,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+
         return None
 
     def _save_token(self, user):
         """Sauvegarde un token JWT"""
-        payload = {
-            'user_id': user.id,
-            'username': user.username,
-            'exp': datetime.now(timezone.utc) + timedelta(hours=24)
-        }
-        token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+        try:
+            payload = {
+                'user_id': user.id,
+                'username': user.username,
+                'exp': datetime.now(timezone.utc) + timedelta(hours=24)
+            }
+            token = jwt.encode(payload, self.secret_key, algorithm='HS256')
 
-        with open(self.token_file, 'w') as f:
-            json.dump({'token': token}, f)
+            with open(self.token_file, 'w') as f:
+                json.dump({'token': token}, f)
 
-        self.console.print("[green]Connexion sauvegardée ![/green]")
+            self.console.print("[green]Connexion sauvegardée ![/green]")
+
+        except Exception as e:
+            sentry_sdk.set_context("auth_service_save_token", {
+                "action": "save_token_error",
+                "user_id": user.id if user else None,
+                "username": user.username if user else None,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e
 
     def logout(self):
         """Supprime le token (déconnexion)"""
-        if self.token_file.exists():
-            self.token_file.unlink()
-            self.console.print("[green]Déconnexion réussie[/green]")
-            return True
-        return False
+        try:
+            if self.token_file.exists():
+                self.token_file.unlink()
+                self.console.print("[green]Déconnexion réussie[/green]")
+                return True
+            return False
+
+        except Exception as e:
+            sentry_sdk.set_context("auth_service_logout", {
+                "action": "logout_error",
+                "token_file_exists": self.token_file.exists() if self.token_file else None,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
+            raise e

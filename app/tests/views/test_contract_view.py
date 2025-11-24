@@ -1,11 +1,10 @@
-import pytest
+import pytest # noqa
 from unittest.mock import Mock, patch
 from datetime import datetime
 from app.views.contract import ContractView
 
 
 class TestContractView:
-    
     def setup_method(self):
         self.contract_view = ContractView()
         self.contract_view.console = Mock()
@@ -15,12 +14,11 @@ class TestContractView:
     def test_get_contract_creation_form(self, mock_prompt, mock_client_commands):
         """Test formulaire création contrat"""
         mock_prompt.ask.side_effect = ["1", "1000", "500", "signé"]
-        
         result = self.contract_view.get_contract_creation_form()
-        
+
         assert result == {
             'client_id': "1",
-            'total_amount': "1000", 
+            'total_amount': "1000",
             'remaining_amount': "500",
             'status': "signé"
         }
@@ -45,11 +43,9 @@ class TestContractView:
         mock_contract.total_amount = 1000
         mock_contract.remaining_amount = 500
         mock_contract.is_signed = True
-        
         mock_prompt.ask.side_effect = ["2000", "1000", "non signé"]
-        
         result = self.contract_view.get_contract_update_form(mock_contract)
-        
+
         assert result == {
             'total_amount': 2000.0,
             'remaining_amount': 1000.0,
@@ -72,7 +68,7 @@ class TestContractView:
         mock_contract.is_signed = True
         mock_contract.created_at.strftime.return_value = "01-01-2024"
         mock_contract.last_updated_at.strftime.return_value = "01-01-2024"
-        
+
         self.contract_view.display_contract_list([mock_contract])
         self.contract_view.console.print.assert_called()
 
@@ -111,9 +107,8 @@ class TestContractView:
     def test_get_commercial_id(self, mock_prompt, mock_user_commands):
         """Test récupération ID commercial"""
         mock_prompt.ask.return_value = "5"
-        
         result = self.contract_view.get_commercial_id()
-        
+
         assert result == "5"
         mock_user_commands.assert_called_once()
 
@@ -128,6 +123,6 @@ class TestContractView:
         mock_contract.is_signed = False  # ← Non signé pour tester l'else
         mock_contract.created_at.strftime.return_value = "01-01-2024"
         mock_contract.last_updated_at.strftime.return_value = "01-01-2024"
-        
+
         self.contract_view.display_contract_list([mock_contract])
         self.contract_view.console.print.assert_called()

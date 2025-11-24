@@ -22,7 +22,7 @@ class EventView:
 
             try:
                 date_start = datetime.strptime(date_start_input, "%d-%m-%Y %H:%M")
-                
+
                 # Vérifier que la date de début n'est pas dans le passé
                 if date_start <= datetime.now():
                     self.console.print("[red]❌ La date de début ne peut pas être dans le passé ![/red]")
@@ -33,10 +33,10 @@ class EventView:
 
         while True:
             date_end_input = Prompt.ask("Date/heure de fin (DD-MM-YYYY HH:MM)")
-            
+
             try:
                 date_end = datetime.strptime(date_end_input, "%d-%m-%Y %H:%M")
-                
+
                 # Vérifier que la date de début n'est pas dans le passé
                 if date_end <= datetime.now():
                     self.console.print("[red]❌ La date de fin ne peut pas être dans le passé ![/red]")

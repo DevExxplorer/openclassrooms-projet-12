@@ -1,5 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+import pytest  # noqa
+from unittest.mock import Mock, patch
 from click.testing import CliRunner
 
 from app.controllers.cli import main_cli, show_menu, initialize_database
@@ -128,7 +128,7 @@ class TestShowMenu:
         mock_auth_instance.logout.assert_called_once()
 
     @patch('app.commands.cli.MenuService')
-    @patch('app.commands.cli.AuthService') 
+    @patch('app.commands.cli.AuthService')
     @patch('app.commands.cli.console')
     @patch('app.commands.cli.DIRECT_ACTIONS', {'action1': 'direct_action_1'})
     def test_show_menu_direct_action(self, mock_console, mock_auth_service, mock_menu_service):
@@ -169,7 +169,7 @@ class TestMainLoop:
         from app.controllers.cli import main_loop
 
         main_loop()
-        
+
         mock_show_menu.assert_called_once()
 
     @patch('app.commands.cli.show_menu')

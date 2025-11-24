@@ -1,5 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+import pytest  # noqa
+from unittest.mock import Mock, patch
 
 from app.controllers.event import EventCommands
 
@@ -531,6 +531,5 @@ class TestEventCommands:
 
         # Vérifications
         # Vérifier que le message d'erreur spécifique est affiché
-        error_calls = [call for call in self.event_commands.console.print.call_args_list 
-                    if "introuvable ou n'est pas un support" in str(call)]
+        error_calls = [call for call in self.event_commands.console.print.call_args_list if "introuvable ou n'est pas un support" in str(call)]
         assert len(error_calls) > 0

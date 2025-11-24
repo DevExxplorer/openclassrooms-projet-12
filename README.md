@@ -10,7 +10,6 @@ Ce projet implémente une architecture back-end robuste et sécurisée utilisant
 - Intégration avec base de données SQL
 - Gestion des dépendances avec Poetry
 - Authentification et autorisation
-- API RESTful sécurisée
 - Validation des données
 - Gestion des erreurs
 
@@ -35,11 +34,20 @@ cd openclassrooms-projet-12
 ### 2. Installer les dépendances
 
 ```bash
-# Installer toutes les dépendances du projet
+# 1. Installer Poetry (si pas déjà fait)
+curl -sSL https://install.python-poetry.org | python3 -
+
+# 2. Installer toutes les dépendances
 poetry install
 
-# Activer l'environnement virtuel
+# 3. Activer l'environnement virtuel
 poetry shell
+
+# 3. Ou derniere version poetry
+poetry env activate
+
+# 4. Lancer le serveur
+poetry run python main.py
 ```
 
 ## Configuration
@@ -62,23 +70,6 @@ MODE=prod
 
 ```bash
 poetry run python main.py --dev-init
-```
-
-## Guide de démarrage rapide
-
-### Lancement du serveur de développement
-
-```bash
-# Activer l'environnement Poetry
-
-## Ancienne version poetry
-poetry shell
-
-# Derniere version poetry
-poetry env activate
-
-# Lancer le serveur
-poetry run python main.py
 ```
 
 ### Tests
