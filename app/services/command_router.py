@@ -1,4 +1,4 @@
-from app.commands import UserCommands, ContractCommands, ClientCommands, EventCommands
+from app.controllers import UserCommands, ContractCommands, ClientCommands, EventCommands
 from rich.console import Console
 
 

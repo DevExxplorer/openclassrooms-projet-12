@@ -1,5 +1,5 @@
 from rich.console import Console
-from app.commands import ContractCommands
+from app.controllers import ContractCommands
 from app.views.event import EventView
 from app.models.event import Event
 from app.models.user import User

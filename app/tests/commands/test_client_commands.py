@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from app.commands.client import ClientCommands
+from app.controllers.client import ClientCommands
 
 
 class TestClientCommands:

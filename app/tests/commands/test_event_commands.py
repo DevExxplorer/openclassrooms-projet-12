@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from app.commands.event import EventCommands
+from app.controllers.event import EventCommands
 
 
 class TestEventCommands:

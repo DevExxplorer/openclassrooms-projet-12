@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from app.commands.contract import ContractCommands
+from app.controllers.contract import ContractCommands
 
 
 class TestContractCommands:

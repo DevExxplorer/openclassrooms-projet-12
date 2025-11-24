@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from click.testing import CliRunner
 
-from app.commands.cli import main_cli, show_menu, initialize_database
+from app.controllers.cli import main_cli, show_menu, initialize_database
 
 
 class TestCLI:
@@ -166,7 +166,7 @@ class TestMainLoop:
 
         mock_show_menu.return_value = "exit"
 
-        from app.commands.cli import main_loop
+        from app.controllers.cli import main_loop
 
         main_loop()
         
@@ -178,7 +178,7 @@ class TestMainLoop:
 
         mock_show_menu.side_effect = ["continue", "exit"]
 
-        from app.commands.cli import main_loop
+        from app.controllers.cli import main_loop
 
         main_loop()
 
