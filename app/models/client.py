@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
 from app.utils.validators import validate_email, validate_tel
+import sentry_sdk
 
 
 class Client(Base, DateTracked):
@@ -33,9 +34,11 @@ class Client(Base, DateTracked):
     @classmethod
     def create(cls, role, **kwargs):
         """Création du client après validation des champs"""
-        session = db_manager.get_session()
+        session = None
 
         try:
+            session = db_manager.get_session()
+
             if not kwargs.get('name') or kwargs.get('name').strip() == '':
                 raise ValueError("Le nom du client est obligatoire")
 
@@ -62,10 +65,21 @@ class Client(Base, DateTracked):
             return client
 
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+
+            sentry_sdk.set_context("client_model_create", {
+                "role": role,
+                "action": "create_error",
+                "client_data": kwargs,
+                "error_type": type(e).__name__
+            })
+
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def get_all(cls):
@@ -73,16 +87,26 @@ class Client(Base, DateTracked):
         Récupérer tous les clients
         Accessible à tous les rôles selon le cahier des charges
         """
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
             clients = session.query(cls).all()
             return clients
+
         except Exception as e:  # pragma: no cover
-            session.rollback()
+            if session:
+                session.rollback()
+
+            sentry_sdk.set_context("client_model_get_all", {
+                "action": "get_all_error",
+                "error_type": type(e).__name__
+            })
+
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def get_by_id(cls, client_id):
@@ -90,18 +114,27 @@ class Client(Base, DateTracked):
         Récupérer un client par son ID
         Accessible à tous les rôles
         """
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
             client = session.query(cls).filter(cls.id == client_id).first()
             if not client:
                 raise ValueError(f"Client avec l'ID {client_id} introuvable")
             return client
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+
+            sentry_sdk.set_context("client_model_get_by_id", {
+                "client_id": client_id,
+                "action": "get_by_id_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()
 
     @classmethod
     def get_by_email(cls, email):
@@ -109,15 +142,25 @@ class Client(Base, DateTracked):
         Récupérer un client par son email
         Accessible à tous les rôles
         """
-        session = db_manager.get_session()
-
+        session = None
         try:
+            session = db_manager.get_session()
             client = session.query(cls).filter(cls.mail == email).first()
             if not client:
                 raise ValueError(f"Client avec l'email '{email}' introuvable")
             return client
+
         except Exception as e:
-            session.rollback()
+            if session:
+                session.rollback()
+
+            sentry_sdk.set_context("client_model_get_by_email", {
+                "email": email,
+                "action": "get_by_email_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
         finally:
-            session.close()
+            if session:
+                session.close()

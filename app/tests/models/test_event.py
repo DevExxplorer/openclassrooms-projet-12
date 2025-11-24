@@ -1,6 +1,5 @@
-import pytest
+import pytest  # noqa
 from datetime import datetime, timezone, timedelta
-
 from app.models.event import Event
 from app.models.contract import Contract
 from app.models.client import Client
@@ -33,10 +32,10 @@ def test_create_event_success(test_db):
         remaining_amount=500.0,
         is_signed=True
     )
-    
+
     date_start = datetime.now(timezone.utc) + timedelta(days=30)
     date_end = date_start + timedelta(hours=5)
-    
+
     event = Event.create(
         name="Test Event",
         contract_id=contract.id,
@@ -45,7 +44,6 @@ def test_create_event_success(test_db):
         location="Paris",
         attendees=50
     )
-    
     assert event.name == "Test Event"
     assert event.support_contact_id is None
 
@@ -54,7 +52,7 @@ def test_create_event_invalid_contract(test_db):
     """Test avec contrat inexistant"""
     date_start = datetime.now(timezone.utc) + timedelta(days=30)
     date_end = date_start + timedelta(hours=5)
-    
+
     with pytest.raises(ValueError) as exc_info:
         Event.create(
             name="Test Event",
@@ -64,7 +62,7 @@ def test_create_event_invalid_contract(test_db):
             location="Paris",
             attendees=50
         )
-    
+
     assert "Contrat avec l'ID 999 introuvable" in str(exc_info.value)
 
 
@@ -93,10 +91,10 @@ def test_create_event_invalid_support(test_db):
         remaining_amount=500.0,
         is_signed=True
     )
-    
+
     date_start = datetime.now(timezone.utc) + timedelta(days=30)
     date_end = date_start + timedelta(hours=5)
-    
+
     with pytest.raises(ValueError) as exc_info:
         Event.create(
             name="Test Event",
@@ -107,5 +105,5 @@ def test_create_event_invalid_support(test_db):
             attendees=50,
             support_contact_id=999
         )
-    
+
     assert "Support avec l'ID 999 introuvable" in str(exc_info.value)

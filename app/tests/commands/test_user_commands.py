@@ -1,5 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+import pytest # noqa
+from unittest.mock import Mock, patch
 
 from app.controllers.user import UserCommands
 

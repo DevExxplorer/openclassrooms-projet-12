@@ -1,5 +1,6 @@
 from app.controllers import UserCommands, ContractCommands, ClientCommands, EventCommands
 from rich.console import Console
+import sentry_sdk
 
 
 class CommandRouter:
@@ -52,17 +53,43 @@ class CommandRouter:
 
     def execute(self, command_type, role, choice):
         """Exécute la commande en fonction du type, rôle et choix"""
-        command = self.command_map.get((command_type, role, choice))
+        try:
+            command = self.command_map.get((command_type, role, choice))
 
-        if command:
-            command()
-        else:
-            self.console.print(f"[red]Commande non trouvée: {command_type}/{role}/{choice}[/red]")
+            if command:
+                command()
+            else:
+                self.console.print(f"[red]Commande non trouvée: {command_type}/{role}/{choice}[/red]")
+
+        except Exception as e:
+            self.console.print(f"[red]Erreur lors de l'exécution de la commande: {e}[/red]")
+
+            sentry_sdk.set_context("command_router_execute", {
+                "command_type": command_type,
+                "role": role,
+                "choice": choice,
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "action": "execute_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
 
     def execute_direct_action(self, action):
         """Exécute les actions directes"""
-        command = self.command_map.get(("direct", action, ""))
-        if command:
-            command()
-        else:
-            self.console.print(f"[red]Action directe non trouvée: {action}[/red]")
+        try:
+            command = self.command_map.get(("direct", action, ""))
+            if command:
+                command()
+            else:
+                self.console.print(f"[red]Action directe non trouvée: {action}[/red]")
+
+        except Exception as e:
+            self.console.print(f"[red]Erreur lors de l'exécution de l'action: {e}[/red]")
+
+            sentry_sdk.set_context("command_router_direct", {
+                "action": action,
+                "current_user_id": self.current_user.id if self.current_user else None,
+                "action_type": "execute_direct_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)

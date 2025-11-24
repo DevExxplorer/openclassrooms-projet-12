@@ -1,6 +1,7 @@
 from app.models.department import Department
 from app.models.user import User
 from app.database.db import db_manager
+import sentry_sdk
 
 
 class Initialization:
@@ -28,6 +29,12 @@ class Initialization:
 
             except Exception as e:
                 results.append((None, f"Erreur pour {dept_name}: {e}"))
+                sentry_sdk.set_context("initialization_departments", {
+                    "department_name": dept_name,
+                    "action": "initialize_department_error",
+                    "error_type": type(e).__name__
+                })
+                sentry_sdk.capture_exception(e)
 
         return results
 
@@ -43,7 +50,15 @@ class Initialization:
                 department="gestion"
             )
             return admin, True
+
         except Exception as e:
+            sentry_sdk.set_context("initialization_admin", {
+                "admin_username": "admin",
+                "admin_email": "admin@epicevents.com",
+                "action": "create_admin_error",
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
             raise e
 
     @staticmethod
@@ -66,5 +81,13 @@ class Initialization:
 
         except Exception as e:
             results['errors'].append(f"Erreur lors de l'initialisation: {e}")
+
+            sentry_sdk.set_context("initialization_application", {
+                "action": "initialize_application_error",
+                "departments_count": len(results['departments']) if results['departments'] else 0,
+                "admin_created": results['admin'] is not None,
+                "error_type": type(e).__name__
+            })
+            sentry_sdk.capture_exception(e)
 
         return results

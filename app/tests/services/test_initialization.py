@@ -1,6 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-
+import pytest # noqa
+from unittest.mock import Mock, patch
 from app.services.initialization import Initialization
 
 
@@ -219,9 +218,8 @@ class TestInitialization:
     def test_initialize_application_structure(self):
         """Test structure du résultat d'initialize_application"""
         # Mock toutes les méthodes pour éviter les appels réels
-        with patch('app.services.initialization.Initialization.initialize_departments') as mock_dept, \
-            patch('app.services.initialization.Initialization.create_default_admin') as mock_admin:
-
+        with (patch('app.services.initialization.Initialization.initialize_departments') as mock_dept,
+                patch('app.services.initialization.Initialization.create_default_admin') as mock_admin):
             mock_dept.return_value = []
             mock_admin.return_value = (None, False)
 

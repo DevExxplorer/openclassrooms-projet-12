@@ -1,8 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch, mock_open, MagicMock
-import json
-from pathlib import Path
-
+import pytest # noqa
+from unittest.mock import Mock, patch, mock_open
 from app.services.auth_service import AuthService
 
 
@@ -141,7 +138,7 @@ class TestAuthService:
 
         # Mock pour s'assurer qu'on n'appelle pas les autres méthodes
         with patch('builtins.input') as mock_input, \
-            patch('app.services.auth_service.getpass.getpass') as mock_getpass:
+                patch('app.services.auth_service.getpass.getpass') as mock_getpass:
 
             # Exécution
             result = self.auth_service.authenticate_user()

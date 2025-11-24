@@ -1,11 +1,10 @@
-import pytest
+import pytest # noqa
 from unittest.mock import Mock, patch
 from datetime import datetime
 from app.views.event import EventView
 
 
 class TestEventView:
-    
     def setup_method(self):
         self.event_view = EventView(contract_id=1)
         self.event_view.console = Mock()
@@ -16,14 +15,14 @@ class TestEventView:
         mock_prompt.ask.side_effect = [
             "Test Event",
             "01-01-2024 10:00",
-            "01-01-2024 18:00", 
+            "01-01-2024 18:00",
             "Paris",
             "50",
             "Notes test"
         ]
-        
+
         result = self.event_view.get_event_creation_form()
-        
+
         assert result['name'] == "Test Event"
         assert result['contract_id'] == 1
 
@@ -34,11 +33,11 @@ class TestEventView:
             "Test Event",
             "invalid date",
             "01-01-2024 18:00",
-            "Paris", 
+            "Paris",
             "50",
             "Notes"
         ]
-        
+
         result = self.event_view.get_event_creation_form()
         assert result is None
 
@@ -60,7 +59,7 @@ class TestEventView:
         mock_event.notes = "Notes"
         mock_event.support_contact = Mock()
         mock_event.support_contact.name = "Support Test"
-        
+
         self.event_view.display_event_list([mock_event])
         self.event_view.console.print.assert_called()
 
@@ -76,7 +75,7 @@ class TestEventView:
         mock_event.attendees = 50
         mock_event.notes = None  # ← Test notes vides
         mock_event.support_contact = None  # ← Test sans support
-        
+
         self.event_view.display_event_list([mock_event])
         self.event_view.console.print.assert_called()
 
@@ -90,16 +89,16 @@ class TestEventView:
         mock_event.location = "Paris"
         mock_event.attendees = 50
         mock_event.notes = "Notes"
-        
+
         mock_prompt.ask.side_effect = [
             "New Event",
             "02-01-2024 10:00",
             "02-01-2024 18:00",
             "Lyon",
-            "100", 
+            "100",
             "New notes"
         ]
-        
+
         result = self.event_view.get_event_update_form(mock_event)
         assert result['name'] == "New Event"
 
@@ -113,7 +112,7 @@ class TestEventView:
         mock_event.location = "Paris"
         mock_event.attendees = 50
         mock_event.notes = "Notes"
-        
+
         mock_prompt.ask.side_effect = [
             "Event",
             "invalid date",  # Date début invalide
@@ -122,7 +121,7 @@ class TestEventView:
             "",
             ""
         ]
-        
+
         result = self.event_view.get_event_update_form(mock_event)
         assert result is None
 
@@ -136,7 +135,7 @@ class TestEventView:
         mock_support = Mock()
         mock_support.id = 1
         mock_support.name = "Support Test"
-        
+
         self.event_view.display_supports_available([mock_support])
         self.event_view.console.print.assert_called()
 
@@ -165,7 +164,7 @@ class TestEventView:
         mock_event.location = "Paris"
         mock_event.attendees = 50
         mock_event.notes = "Notes"
-        
+
         mock_prompt.ask.side_effect = [
             "Event",
             "01-01-2024 10:00",  # Date début valide
@@ -174,6 +173,6 @@ class TestEventView:
             "",
             ""
         ]
-        
+
         result = self.event_view.get_event_update_form(mock_event)
         assert result is None

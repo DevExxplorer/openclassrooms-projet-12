@@ -1,10 +1,9 @@
-import pytest
+import pytest # noqa
 from unittest.mock import Mock, patch
 from app.views.menu import MenuManager, Menu, Submenu
 
 
 class TestMenuManager:
-    
     def setup_method(self):
         self.menu_manager = MenuManager()
         self.menu_manager.console = Mock()

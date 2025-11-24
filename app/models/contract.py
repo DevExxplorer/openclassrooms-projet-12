@@ -4,6 +4,7 @@ from app.database.db import Base, db_manager
 from app.models.client import Client
 from app.models.user import User
 from app.models.date_tracked import DateTracked
+import sentry_sdk
 
 
 class Contract(Base, DateTracked):
@@ -33,32 +34,54 @@ class Contract(Base, DateTracked):
     def __str__(self):  # pragma: no cover
         return f"Contrat #{self.id} - {self.client.name if self.client else 'Client inconnu'} ({'Signé' if self.is_signed else 'Non signé'})"
 
-    def create(**kwargs):
+    @classmethod
+    def create(cls, **kwargs):
         """Créer un nouveau contrat"""
+        session = None
 
-        session = db_manager.get_session()
+        try:
+            session = db_manager.get_session()
 
-        # Vérification de l'existence du client
-        client = session.query(Client).filter(Client.id == kwargs.get('client_id')).first()
-        if not client:
-            raise ValueError(f"Client avec l'ID {kwargs.get('client_id')} introuvable")
+            # Vérification de l'existence du client
+            client = session.query(Client).filter(Client.id == kwargs.get('client_id')).first()
+            if not client:
+                raise ValueError(f"Client avec l'ID {kwargs.get('client_id')} introuvable")
 
-        # Vérification de l'existence du commercial
-        commercial = session.query(User).filter(User.id == kwargs.get('commercial_contact_id')).first()
-        if not commercial:
-            raise ValueError(f"Commercial avec l'ID {kwargs.get('commercial_contact_id')} introuvable")
+            # Vérification de l'existence du commercial
+            commercial = session.query(User).filter(User.id == kwargs.get('commercial_contact_id')).first()
+            if not commercial:
+                raise ValueError(f"Commercial avec l'ID {kwargs.get('commercial_contact_id')} introuvable")
 
-        # Création du contrat
-        contract = Contract(
-            client_id=kwargs.get('client_id'),
-            commercial_contact_id=kwargs.get('commercial_contact_id'),
-            total_amount=kwargs.get('total_amount'),
-            remaining_amount=kwargs.get('remaining_amount'),
-            is_signed=(kwargs.get('status') == 'signé')
-        )
-        session = db_manager.get_session()
-        session.add(contract)
-        session.commit()
-        session.refresh(contract)
-        session.close()
-        return contract
+            # Création du contrat
+            contract = cls(
+                client_id=kwargs.get('client_id'),
+                commercial_contact_id=kwargs.get('commercial_contact_id'),
+                total_amount=kwargs.get('total_amount'),
+                remaining_amount=kwargs.get('remaining_amount'),
+                is_signed=(kwargs.get('status') == 'signé')
+            )
+
+            session.add(contract)
+            session.commit()
+            session.refresh(contract)
+            return contract
+
+        except Exception as e:
+            if session:
+                session.rollback()
+
+            # Contexte Sentry pour l'erreur
+            sentry_sdk.set_context("contract_model_create", {
+                "action": "create_error",
+                "contract_data": kwargs,
+                "client_id": kwargs.get('client_id'),
+                "commercial_contact_id": kwargs.get('commercial_contact_id'),
+                "error_type": type(e).__name__
+            })
+
+            # Capturer l'exception avec Sentry
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
