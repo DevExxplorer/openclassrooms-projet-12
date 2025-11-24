@@ -1,4 +1,4 @@
-from app.commands.cli import main_cli
+from app.controllers.cli import main_cli
 import sentry_sdk
 
 # Initialize Sentry for error tracking

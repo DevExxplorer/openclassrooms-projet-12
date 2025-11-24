@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from app.commands.user import UserCommands
+from app.controllers.user import UserCommands
 
 
 class TestUserCommands:

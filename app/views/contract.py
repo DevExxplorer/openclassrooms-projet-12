@@ -1,8 +1,8 @@
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
-from app.commands.client import ClientCommands
-from app.commands.user import UserCommands
+from app.controllers.client import ClientCommands
+from app.controllers.user import UserCommands
 from datetime import datetime
 
 
