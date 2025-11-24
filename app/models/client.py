@@ -81,6 +81,39 @@ class Client(Base, DateTracked):
             if session:
                 session.close()
 
+    def update(self, **kwargs):
+        """Mettre à jour le client actuel"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            client = session.merge(self)
+            
+            for key, value in kwargs.items():
+                if hasattr(client, key) and value is not None:
+                    if isinstance(value, str) and not value.strip():
+                        continue
+                    setattr(client, key, value)
+
+            session.commit()
+            session.refresh(client)
+            
+            # Mettre à jour l'instance actuelle
+            for key, value in kwargs.items():
+                if hasattr(self, key) and value is not None:
+                    if isinstance(value, str) and not value.strip():
+                        continue
+                    setattr(self, key, value)
+            return client
+
+        except Exception as e:
+            if session:
+                session.rollback()
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
     @classmethod
     def get_all(cls):
         """
@@ -161,6 +194,52 @@ class Client(Base, DateTracked):
             })
             sentry_sdk.capture_exception(e)
             raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_by_commercial(cls, user_id):
+        """RÉCUPÉRER LES CLIENTS D'UN COMMERCIAL"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            return session.query(cls).filter(cls.commercial_contact_id == user_id).all()
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def search_by_name(cls, name):
+        """RECHERCHER LES CLIENTS PAR NOM"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            return session.query(cls).filter(cls.name.ilike(f"%{name}%")).all()
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_by_id_with_permissions(cls, client_id, user_id):
+        """RÉCUPÉRER UN CLIENT AVEC PERMISSIONS"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            client = session.query(cls).filter(
+                cls.id == client_id,
+                cls.commercial_contact_id == user_id
+            ).first()
+            return client
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return None
         finally:
             if session:
                 session.close()
