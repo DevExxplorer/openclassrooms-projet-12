@@ -56,124 +56,51 @@ class UserCommands:
 
     def update_user(self):
         """Modifier un collaborateur"""
-        session = None
         user_id = None
-
         try:
             self.list_users()
             user_id = self.user_view.get_user_id()
-            session = db_manager.get_session()
 
-            user = session.query(User).filter(User.id == user_id).first()
+            user = User.get_by_id(user_id)
             if not user:
                 self.console.print(f"[red]Collaborateur avec l'ID {user_id} introuvable.[/red]")
                 return
 
-            # Forcer le chargement du département avant de l'utiliser
-            dept_name = user.department.name if user.department else None
-
             updated_data = self.user_view.get_user_update_form(user)
-
-            # Gérer le département spécialement
-            if 'department' in updated_data:
-                new_dept_name = updated_data.pop('department')  # Retire 'department' du dict
-                if new_dept_name != dept_name:  # Seulement si changement
-                    dept = session.query(Department).filter(Department.name == new_dept_name).first()
-                    if dept:
-                        user.department_id = dept.id
-                    else:
-                        self.console.print(f"[red]Département '{new_dept_name}' introuvable.[/red]")
-                        return
-
-            # Gérer le mot de passe s'il est fourni
-            if 'password' in updated_data and updated_data['password'].strip():
-                password = updated_data.pop('password')
-                user.password_hash = User.hash_password(password)
-            elif 'password' in updated_data:
-                updated_data.pop('password')  # Enlever si vide
-
-            # Mettre à jour les autres champs
-            for key, value in updated_data.items():
-                if hasattr(user, key) and value.strip():  # Vérifier que l'attribut existe et n'est pas vide
-                    setattr(user, key, value)
-
-            session.commit()
+            user.update(**updated_data)
             self.console.print(f"[green]Collaborateur {user.name} mis à jour avec succès ![/green]")
 
         except Exception as e:
-            if session:
-                session.rollback()
             self.console.print(f"[red]Erreur lors de la mise à jour : {e}[/red]")
-            sentry_sdk.set_context("user_update", {
-                "user_id": user_id,
-                "current_user_id": self.current_user.id if self.current_user else None,
-                "action": "update_error"
-            })
             sentry_sdk.capture_exception(e)
-        finally:
-            if session:
-                session.close()
 
     def delete_user(self):
         """Supprimer un collaborateur"""
-        session = None
         user_id = None
-
         try:
             self.list_users()
-
             user_id = self.user_view.get_user_id()
-            session = db_manager.get_session()
 
-            user = session.query(User).filter(User.id == user_id).first()
+            user = User.get_by_id(user_id)
             if not user:
                 self.console.print(f"[red]Collaborateur avec l'ID {user_id} introuvable.[/red]")
                 return
 
-            session.delete(user)
-            session.commit()
+            user.delete('gestion')  # Rôle gestion pour les permissions
             self.console.print(f"[green]Collaborateur {user.name} supprimé ![green]")
         except Exception as e:
-            if session:
-                session.rollback()
             self.console.print(f"[red]Erreur : {e}[red]")
-            sentry_sdk.set_context("user_deletion", {
-                "user_id": user_id,
-                "current_user_id": self.current_user.id if self.current_user else None,
-                "action": "delete_error"
-            })
             sentry_sdk.capture_exception(e)
-        finally:
-            if session:
-                session.close()
 
     def list_users(self, filter_by_department=None):
         """Lister tous les collaborateurs"""
-        session = None
-
         try:
-            session = db_manager.get_session()
-
             if filter_by_department:
-                users = session.query(User).join(User.department).filter(
-                    Department.name == filter_by_department
-                ).all()
+                users = User.get_by_department(filter_by_department)
             else:
-                users = session.query(User).all()
-
-            # Forcer le chargement AVANT de fermer la session
-            for user in users:
-                _ = user.department.name if user.department else None
+                users = User.get_all()
 
             self.user_view.display_user_list(users)
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[/red]")
-            sentry_sdk.set_context("user_listing", {
-                "filter_by_department": filter_by_department,
-                "current_user_id": self.current_user.id if self.current_user else None,
-                "action": "list_error"
-            })
             sentry_sdk.capture_exception(e)
-        finally:
-            if session:
-                session.close()
