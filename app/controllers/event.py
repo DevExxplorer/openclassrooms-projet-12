@@ -23,6 +23,14 @@ class EventCommands:
             self.console.print("[yellow]Création d'un nouvel événement...[/yellow]")
 
             # Tableau des contrats signés
+            signed_contracts = Contract.get_filtered_contracts(self.current_user.id, "signed")
+        
+            if not signed_contracts:
+                self.console.print("[yellow]Aucun contrat signé disponible pour créer un événement.[/yellow]")
+                return
+
+            # Afficher seulement s'il y en a
+            self.console.print("Contrats signés disponibles :")
             ContractCommands(self.current_user).filter_signed_contracts()
 
             # Choix du contrat

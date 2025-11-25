@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, DateTime, String, Text, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, joinedload
 from app.database.db import Base, db_manager
 from app.models.date_tracked import DateTracked
 from app.models.contract import Contract
@@ -141,7 +141,10 @@ class Event(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            return session.query(cls).filter(cls.support_contact_id.is_(None)).all()
+            return session.query(cls).options(
+                joinedload(cls.contract).joinedload(Contract.client),
+                joinedload(cls.support_contact)
+            ).filter(cls.support_contact_id.is_(None)).all()
         except Exception as e:
             sentry_sdk.set_context("event_model_get_no_support", {
                 "action": "get_without_support_error",
@@ -163,7 +166,10 @@ class Event(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            event = session.query(cls).filter(cls.id == event_id).first()
+            event = session.query(cls).options(
+                joinedload(cls.contract).joinedload(Contract.client),
+                joinedload(cls.support_contact)
+            ).filter(cls.id == event_id).first()
             if not event:
                 raise ValueError(f"Événement avec l'ID {event_id} introuvable")
             return event
@@ -215,7 +221,10 @@ class Event(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            return session.query(cls).all()
+            return session.query(cls).options(
+                joinedload(cls.contract).joinedload(Contract.client),
+                joinedload(cls.support_contact)
+            ).all()
         except Exception as e:
             sentry_sdk.capture_exception(e)
             raise e
@@ -229,7 +238,10 @@ class Event(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            return session.query(cls).filter(cls.support_contact_id == user_id).all()
+            return session.query(cls).options(
+                joinedload(cls.contract).joinedload(Contract.client),
+                joinedload(cls.support_contact)
+            ).filter(cls.support_contact_id == user_id).all()
         except Exception as e:
             sentry_sdk.capture_exception(e)
             raise e
@@ -263,18 +275,21 @@ class Event(Base, DateTracked):
         try:
             session = db_manager.get_session()
 
+            base_query = session.query(cls).options(
+                joinedload(cls.contract).joinedload(Contract.client),
+                joinedload(cls.support_contact)
+            )
+
             if user_role == "support":
-                # Support : seulement ses événements assignés
-                event = session.query(cls).filter(
+                event = base_query.filter(
                     cls.id == event_id,
                     cls.support_contact_id == user_id
                 ).first()
             elif user_role == "gestion":
-                # Gestion : tous les événements
-                event = session.query(cls).filter(cls.id == event_id).first()
+                event = base_query.filter(cls.id == event_id).first()
             else:
-                # Commercial : pas autorisé
                 return None
+
 
             return event
         except Exception as e:

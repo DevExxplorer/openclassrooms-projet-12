@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Float, Boolean, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, joinedload
 from app.database.db import Base, db_manager
 from app.models.client import Client
 from app.models.user import User
@@ -92,7 +92,11 @@ class Contract(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            client = session.query(Client).filter(Client.id == client_id).first()
+            
+            client = session.query(Client).options(
+                joinedload(Client.commercial_contact)
+            ).filter(Client.id == client_id).first()
+            
             return client
         except Exception as e:
             sentry_sdk.capture_exception(e)
@@ -140,7 +144,10 @@ class Contract(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            return session.query(cls).all()
+            return session.query(cls).options(
+                joinedload(cls.client),
+                joinedload(cls.commercial_contact)
+            ).all()
         except Exception as e:
             sentry_sdk.capture_exception(e)
             raise e
@@ -154,7 +161,10 @@ class Contract(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            return session.query(cls).filter(cls.commercial_contact_id == user_id).all()
+            return session.query(cls).options(
+                joinedload(cls.client),
+                joinedload(cls.commercial_contact)
+            ).filter(cls.commercial_contact_id == user_id).all()
         except Exception as e:
             sentry_sdk.capture_exception(e)
             raise e
@@ -170,12 +180,18 @@ class Contract(Base, DateTracked):
             session = db_manager.get_session()
             
             if role == "commercial":
-                contract = session.query(cls).join(cls.client).filter(
+                contract = session.query(cls).options(
+                    joinedload(cls.client),
+                    joinedload(cls.commercial_contact)
+                ).join(cls.client).filter(
                     cls.id == contract_id,
                     Client.commercial_contact_id == user_id
                 ).first()
             elif role == "gestion":
-                contract = session.query(cls).filter(cls.id == contract_id).first()
+                contract = session.query(cls).options(
+                    joinedload(cls.client),
+                    joinedload(cls.commercial_contact)
+                ).filter(cls.id == contract_id).first()
             else:
                 return None
                 
@@ -194,7 +210,10 @@ class Contract(Base, DateTracked):
         try:
             session = db_manager.get_session()
             
-            base_query = session.query(cls).filter(cls.commercial_contact_id == user_id)
+            base_query = session.query(cls).options(
+                joinedload(cls.client),
+                joinedload(cls.commercial_contact)
+            ).filter(cls.commercial_contact_id == user_id)
             
             if filter_type == "unsigned":
                 return base_query.filter(~cls.is_signed).all()
