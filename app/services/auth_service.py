@@ -6,12 +6,13 @@ from pathlib import Path
 from rich.console import Console
 from app.models.user import User
 import sentry_sdk
+import os
 
 
 class AuthService:
     def __init__(self, console=None):
         self.console = console or Console()
-        self.secret_key = 'epic-secret-key'
+        self.secret_key = os.getenv('SECRET_KEY')
         self.token_file = Path.home() / '.epic_token'
 
     def authenticate_user(self):
@@ -27,9 +28,12 @@ class AuthService:
             password = getpass.getpass("Mot de passe : ")
 
             user = User.authenticate(username, password)
-            if user:
+            if user:  # Vérification que user n'est pas None
                 self._save_token(user)
-            return user
+                return user
+            else:
+                self.console.print("[red]Nom d'utilisateur ou mot de passe incorrect[/red]")
+                return None
 
         except Exception as e:
             sentry_sdk.set_context("auth_service_authenticate", {
@@ -71,6 +75,12 @@ class AuthService:
     def _save_token(self, user):
         """Sauvegarde un token JWT"""
         try:
+            if not user:
+                raise ValueError("User object is None")
+
+            if not hasattr(user, 'id') or not hasattr(user, 'username'):
+                raise ValueError(f"User object missing required attributes: {user}")
+
             payload = {
                 'user_id': user.id,
                 'username': user.username,
