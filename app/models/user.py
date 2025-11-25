@@ -223,6 +223,10 @@ class User(Base, DateTracked):
         try:
             session = db_manager.get_session()
             users = session.query(cls).all()
+
+            for user in users:
+                _ = user.department.name if user.department else None
+
             return users
 
         except Exception as e:  # pragma: no cover

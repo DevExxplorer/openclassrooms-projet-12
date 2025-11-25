@@ -18,7 +18,10 @@ class ContractCommands:
         try:
             contract_data = self.contract_view.get_contract_creation_form()
 
-            client = Contract.get_client_with_commercial(contract_data['client_id'])
+            if not contract_data:
+                return
+            
+            client = Client.get_by_id(contract_data['client_id'])
 
             if not client:
                 self.console.print("[red]Client introuvable[/red]")

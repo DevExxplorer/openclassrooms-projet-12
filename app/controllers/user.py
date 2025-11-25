@@ -86,7 +86,7 @@ class UserCommands:
                 self.console.print(f"[red]Collaborateur avec l'ID {user_id} introuvable.[/red]")
                 return
 
-            user.delete('gestion')  # Rôle gestion pour les permissions
+            User.delete(user.id, 'gestion')  # Rôle gestion pour les permissions
             self.console.print(f"[green]Collaborateur {user.name} supprimé ![green]")
         except Exception as e:
             self.console.print(f"[red]Erreur : {e}[red]")

@@ -3,6 +3,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 from app.controllers.client import ClientCommands
 from app.controllers.user import UserCommands
+from app.models.client import Client
 from datetime import datetime
 
 
@@ -17,9 +18,20 @@ class ContractView:
         self.console.print("[blue]Création d'un nouveau contrat[/blue]\n")
 
         # Afficher la liste des clients
-        ClientCommands(role="gestion").list_clients()
-        client_id = Prompt.ask("ID du client")
+        try:
+            clients = Client.get_all()  # Récupérer les clients
+            if not clients:  # Vérifier s'il y a des clients
+                self.console.print("[yellow]Aucun client trouvé. Veuillez d'abord créer un client.[/yellow]")
+                return None  # Retourner None pour arrêter le processus
+            
+            # Afficher la liste seulement s'il y a des clients
+            ClientCommands(role="gestion").list_clients()
+            
+        except Exception as e:
+            self.console.print(f"[red]Erreur lors de la récupération des clients : {e}[/red]")
+            return None
 
+        client_id = Prompt.ask("ID du client")
         total_amount = Prompt.ask("Montant total", default=0.00)
         remaining_amount = Prompt.ask("Montant restant à payer", default=0.00)
         status = Prompt.ask("Statut", choices=["signé", "non signé"], default="non signé")

@@ -200,7 +200,7 @@ class Client(Base, DateTracked):
 
     @classmethod
     def get_by_commercial(cls, user_id):
-        """RÉCUPÉRER LES CLIENTS D'UN COMMERCIAL"""
+        """Récupérer les clients d'un commercial spécifique"""
         session = None
         try:
             session = db_manager.get_session()
@@ -214,7 +214,7 @@ class Client(Base, DateTracked):
 
     @classmethod
     def search_by_name(cls, name):
-        """RECHERCHER LES CLIENTS PAR NOM"""
+        """Rechercher des clients par nom"""
         session = None
         try:
             session = db_manager.get_session()
