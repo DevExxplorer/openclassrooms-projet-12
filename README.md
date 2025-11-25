@@ -64,6 +64,8 @@ DB_PASSWORD=[dbpassword]
 DB_HOST=localhost
 DB_PORT=5432
 MODE=prod
+SECRET_KEY='*******'
+DSN="******"
 ```
 
 ### Base de données
