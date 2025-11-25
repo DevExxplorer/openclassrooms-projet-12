@@ -139,56 +139,46 @@ class User(Base, DateTracked):
             if session:
                 session.close()
 
-    @classmethod
-    def update(cls, user_id, role, **kwargs):
-        """
-        Mettre à jour un utilisateur
-        Seul l'equipe de gestion peut modifier un utilisateur
-        """
+    def update(self, **kwargs):
+        """Mettre à jour l'instance d'utilisateur actuelle"""
         session = None
         try:
             session = db_manager.get_session()
-
-            # Contrôle de permission
-            if role != 'gestion':
-                raise PermissionError("Seule l'équipe gestion peut modifier les utilisateurs")
-
-            user = session.query(cls).filter(cls.id == user_id).first()
-            if not user:
-                raise ValueError(f"Utilisateur avec l'ID {user_id} introuvable")
-
-            # Gestion du département si fourni
+            user = session.merge(self)
+            
+            # Gestion du département
             if 'department' in kwargs:
                 dept_name = kwargs.pop('department')
                 dept = session.query(Department).filter(Department.name == dept_name).first()
-                if not dept:
+                if dept:
+                    user.department_id = dept.id
+                else:
                     raise ValueError(f"Département '{dept_name}' introuvable")
-                kwargs['department_id'] = dept.id
 
-            # Hachage du nouveau mot de passe si fourni
-            if 'password' in kwargs:
+            # Gestion du mot de passe
+            if 'password' in kwargs and kwargs['password'].strip():
                 password = kwargs.pop('password')
-                kwargs['password_hash'] = cls.hash_password(password)
+                user.password_hash = self.hash_password(password)
+            elif 'password' in kwargs:
+                kwargs.pop('password')
 
-            # Mise à jour des champs
+            # Mise à jour des autres champs
             for key, value in kwargs.items():
-                if hasattr(user, key):
+                if hasattr(user, key) and value and value.strip():
                     setattr(user, key, value)
 
             session.commit()
             session.refresh(user)
+            
+            # Mettre à jour l'instance actuelle
+            for key, value in kwargs.items():
+                if hasattr(self, key) and value and value.strip():
+                    setattr(self, key, value)
+            
             return user
-
         except Exception as e:
             if session:
                 session.rollback()
-            sentry_sdk.set_context("user_model_update", {
-                "user_id": user_id,
-                "role": role,
-                "action": "update_error",
-                "update_data": kwargs,
-                "error_type": type(e).__name__
-            })
             sentry_sdk.capture_exception(e)
             raise e
         finally:
@@ -220,12 +210,6 @@ class User(Base, DateTracked):
         except Exception as e:
             if session:
                 session.rollback()
-            sentry_sdk.set_context("user_model_delete", {
-                "user_id": user_id,
-                "role": role,
-                "action": "delete_error",
-                "error_type": type(e).__name__
-            })
             sentry_sdk.capture_exception(e)
             raise e
         finally:
@@ -239,6 +223,10 @@ class User(Base, DateTracked):
         try:
             session = db_manager.get_session()
             users = session.query(cls).all()
+
+            for user in users:
+                _ = user.department.name if user.department else None
+
             return users
 
         except Exception as e:  # pragma: no cover
@@ -306,6 +294,26 @@ class User(Base, DateTracked):
                 "action": "get_by_id_error",
                 "error_type": type(e).__name__
             })
+            sentry_sdk.capture_exception(e)
+            raise e
+        finally:
+            if session:
+                session.close()
+
+    @classmethod
+    def get_by_department(cls, department_name):
+        """Récupérer les utilisateurs par département"""
+        session = None
+        try:
+            session = db_manager.get_session()
+            users = session.query(cls).join(cls.department).filter(
+                Department.name == department_name
+            ).all()
+            # Forcer le chargement des départements
+            for user in users:
+                _ = user.department.name if user.department else None
+            return users
+        except Exception as e:
             sentry_sdk.capture_exception(e)
             raise e
         finally:
