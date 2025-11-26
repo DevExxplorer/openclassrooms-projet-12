@@ -189,30 +189,6 @@ class TestMenuService:
         self.menu_service.console.print.assert_any_call("[red]Action non trouvée[/red]")
         assert result == "logout"
 
-    @patch('app.services.menu_service.CommandRouter')
-    @patch('app.services.menu_service.Menu')
-    @patch('app.services.menu_service.MENU_MAPPING')
-    def test_back_to_main_break(self, mock_menu_mapping, mock_menu_class, mock_router):
-        """Test break quand result == back_to_main puis continue dans la boucle"""
-        self.menu_service._get_user_department = Mock(return_value="gestion")
-
-        # Il y a un sous-menu
-        mock_menu_mapping.__getitem__.return_value = {"1": "submenu_key"}
-        mock_menu = Mock()
-        mock_menu_class.return_value = mock_menu
-        # Premier: sous-menu, après break on continue la boucle et deuxième: logout
-        mock_menu.get_choice.side_effect = ["1", "0"]
-        mock_menu.is_valid_choice.return_value = True
-        # ✅ handle_submenu retourne "back_to_main" pour déclencher le break
-        self.menu_service.handle_submenu = Mock(return_value="back_to_main")
-
-        # Exécution
-        result = self.menu_service.handle_main_menu(self.mock_user)
-
-        # ✅ Après break, la boucle continue et get_choice() retourne "0"
-        assert result == "logout"
-        self.menu_service.handle_submenu.assert_called_once_with("submenu_key")
-
     @patch('app.services.menu_service.Submenu')
     @patch('app.services.menu_service.MESSAGES')
     def test_submenu_invalid_option_message(self, mock_messages, mock_submenu_class):

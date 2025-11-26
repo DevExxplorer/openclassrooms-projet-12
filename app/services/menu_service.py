@@ -51,12 +51,11 @@ class MenuService:
 
                     # Retour au menu principal depuis le sous-menu
                     if result == "back_to_main":
-                        continue
+                        break
 
                     return result
 
                 self.console.print(MESSAGES["invalid_option"])
-
         except Exception as e:
             self.console.print(f"[red]Erreur dans le menu principal: {e}[/red]")
 
