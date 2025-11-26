@@ -203,12 +203,13 @@ class TestMenuService:
         # Premier: sous-menu, après break on continue la boucle et deuxième: logout
         mock_menu.get_choice.side_effect = ["1", "0"]
         mock_menu.is_valid_choice.return_value = True
-        # handle_submenu retourne "back_to_main" pour déclencher le break
+        # ✅ handle_submenu retourne "back_to_main" pour déclencher le break
         self.menu_service.handle_submenu = Mock(return_value="back_to_main")
+
         # Exécution
         result = self.menu_service.handle_main_menu(self.mock_user)
-        # Le break fait qu'on retourne dans la boucle principale
-        # Le deuxième get_choice() retourne "0" donc logout
+
+        # ✅ Après break, la boucle continue et get_choice() retourne "0"
         assert result == "logout"
         self.menu_service.handle_submenu.assert_called_once_with("submenu_key")
 

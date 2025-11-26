@@ -23,10 +23,10 @@ class ContractView:
             if not clients:  # Vérifier s'il y a des clients
                 self.console.print("[yellow]Aucun client trouvé. Veuillez d'abord créer un client.[/yellow]")
                 return None  # Retourner None pour arrêter le processus
-            
+
             # Afficher la liste seulement s'il y a des clients
             ClientCommands(role="gestion").list_clients()
-            
+
         except Exception as e:
             self.console.print(f"[red]Erreur lors de la récupération des clients : {e}[/red]")
             return None

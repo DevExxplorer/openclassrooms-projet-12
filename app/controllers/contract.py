@@ -1,8 +1,6 @@
 from app.views.contract import ContractView
 from app.models.contract import Contract
-from app.models.client import Client
 from rich.console import Console
-from app.database.db import db_manager
 import sentry_sdk
 
 
@@ -20,7 +18,7 @@ class ContractCommands:
 
             if not contract_data:
                 return
-            
+
             client = Contract.get_client_with_commercial(contract_data['client_id'])
 
             if not client:
@@ -62,7 +60,7 @@ class ContractCommands:
                 return
 
             updated_data = self.contract_view.get_contract_update_form(contract)
-            
+
             # Utiliser la méthode update du modèle
             contract.update(**updated_data)
             self.console.print(f"[green]Contrat {contract.id} mis à jour ![/green]")

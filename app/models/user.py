@@ -145,7 +145,7 @@ class User(Base, DateTracked):
         try:
             session = db_manager.get_session()
             user = session.merge(self)
-            
+
             # Gestion du département
             if 'department' in kwargs:
                 dept_name = kwargs.pop('department')
@@ -169,12 +169,12 @@ class User(Base, DateTracked):
 
             session.commit()
             session.refresh(user)
-            
+
             # Mettre à jour l'instance actuelle
             for key, value in kwargs.items():
                 if hasattr(self, key) and value and value.strip():
                     setattr(self, key, value)
-            
+
             return user
         except Exception as e:
             if session:

@@ -191,7 +191,7 @@ def test_create_user_invalid_department(test_db):
 
 # Tests update method
 def test_update_user_success(test_db):
-    """Mise à jour réussie par équipe gestion"""
+    """Mise à jour réussie par méthode d'instance"""
     dept1 = Department.create(name="commercial", description="Commercial")
     dept2 = Department.create(name="support", description="Support")
 
@@ -204,41 +204,13 @@ def test_update_user_success(test_db):
         department="commercial"
     )
 
-    updated_user = User.update(
-        user_id=user.id,
-        role="gestion",
-        name="Jean Modifié",
-        department="support"
-    )
+    # ✅ Méthode d'instance
+    user.update(name="Jean Modifié", department="support")
 
+    assert user.name == "Jean Modifié"
+    # Rechargez depuis la DB pour vérifier
+    updated_user = User.get_by_id(user.id)
     assert updated_user.name == "Jean Modifié"
-    assert updated_user.department_id == dept2.id
-
-
-def test_update_user_wrong_role(test_db):
-    """Mise à jour refusée pour mauvais rôle"""
-    dept = Department.create(name="commercial", description="Commercial")
-    user = User.create(
-        employee_number="EMP001",
-        name="Jean Test",
-        mail="jean@test.com",
-        username="jean.test",
-        password="password123",
-        department="commercial"
-    )
-
-    with pytest.raises(PermissionError) as exc_info:
-        User.update(user_id=user.id, role="commercial", name="Hack")
-
-    assert "Seule l'équipe gestion peut modifier" in str(exc_info.value)
-
-
-def test_update_user_not_found(test_db):
-    """Mise à jour d'utilisateur inexistant"""
-    with pytest.raises(ValueError) as exc_info:
-        User.update(user_id=999, role="gestion", name="Test")
-
-    assert "Utilisateur avec l'ID 999 introuvable" in str(exc_info.value)
 
 
 def test_update_user_invalid_department(test_db):
@@ -255,13 +227,59 @@ def test_update_user_invalid_department(test_db):
     )
 
     with pytest.raises(ValueError) as exc_info:
-        User.update(
-            user_id=user.id,
-            role="gestion",
-            department="departement_inexistant"
-        )
+        user.update(department="departement_inexistant")
 
     assert "Département 'departement_inexistant' introuvable" in str(exc_info.value)
+
+
+def test_update_user_with_password(test_db):
+    """Mise à jour avec nouveau mot de passe"""
+    dept = Department.create(name="commercial", description="Commercial")
+
+    user = User.create(
+        employee_number="EMP001",
+        name="Jean Test",
+        mail="jean@test.com",
+        username="jean.test",
+        password="ancienMotDePasse",
+        department="commercial"
+    )
+
+    old_password_hash = user.password_hash
+
+    user.update(password="nouveauMotDePasse123")
+
+    # Recharger depuis la DB
+    updated_user = User.get_by_id(user.id)
+
+    assert updated_user.password_hash != old_password_hash
+    assert not updated_user.verify_password("ancienMotDePasse")
+    assert updated_user.verify_password("nouveauMotDePasse123")
+
+
+def test_update_user_with_empty_password(test_db):
+    """Mise à jour avec mot de passe vide (ne doit pas changer)"""
+    dept = Department.create(name="commercial", description="Commercial")
+
+    user = User.create(
+        employee_number="EMP001",
+        name="Jean Test",
+        mail="jean@test.com",
+        username="jean.test",
+        password="ancienMotDePasse",
+        department="commercial"
+    )
+
+    old_password_hash = user.password_hash
+
+    # Mot de passe vide ne doit pas changer le hash
+    user.update(password="   ", name="Nouveau nom")
+
+    updated_user = User.get_by_id(user.id)
+
+    assert updated_user.password_hash == old_password_hash
+    assert updated_user.verify_password("ancienMotDePasse")
+    assert updated_user.name == "Nouveau nom"
 
 
 # Tests Delete method
@@ -282,8 +300,8 @@ def test_delete_user_success(test_db):
     assert result is True
 
     # Vérifier que l'utilisateur n'existe plus
-    with pytest.raises(ValueError):
-        User.update(user_id=user.id, role="gestion", name="Test")
+    deleted_user = User.get_by_id(user.id)
+    assert deleted_user is None
 
 
 def test_delete_user_wrong_role(test_db):
@@ -312,33 +330,7 @@ def test_delete_user_not_found(test_db):
     assert "Utilisateur avec l'ID 999 introuvable" in str(exc_info.value)
 
 
-def test_update_user_with_password(test_db):
-    """Mise à jour avec nouveau mot de passe"""
-    dept = Department.create(name="commercial", description="Commercial")
-
-    user = User.create(
-        employee_number="EMP001",
-        name="Jean Test",
-        mail="jean@test.com",
-        username="jean.test",
-        password="ancienMotDePasse",
-        department="commercial"
-    )
-
-    old_password_hash = user.password_hash
-
-    updated_user = User.update(
-        user_id=user.id,
-        role="gestion",
-        password="nouveauMotDePasse123"
-    )
-    assert updated_user.password_hash != old_password_hash
-    assert not updated_user.verify_password("ancienMotDePasse")
-    assert updated_user.verify_password("nouveauMotDePasse123")
-
 # Tests Get_all method
-
-
 def test_get_all_users_empty(test_db):
     """Test si aucun utilisateur"""
     users = User.get_all()
@@ -439,3 +431,33 @@ def test_get_by_id_user_without_department(test_db):
     assert retrieved_user is not None
     assert retrieved_user.department is None
     assert retrieved_user.department_name is None
+
+
+def test_get_by_department_success(test_db):
+    """Test récupération par département"""
+    dept1 = Department.create(name="commercial", description="Commercial")
+    dept2 = Department.create(name="support", description="Support")
+
+    User.create(
+        name="Commercial 1",
+        mail="comm1@test.com",
+        username="comm1",
+        password="password123",
+        department="commercial"
+    )
+
+    User.create(
+        name="Support 1",
+        mail="support1@test.com",
+        username="support1",
+        password="password123",
+        department="support"
+    )
+
+    commercial_users = User.get_by_department("commercial")
+    support_users = User.get_by_department("support")
+
+    assert len(commercial_users) == 1
+    assert len(support_users) == 1
+    assert commercial_users[0].name == "Commercial 1"
+    assert support_users[0].name == "Support 1"

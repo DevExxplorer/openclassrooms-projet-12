@@ -87,7 +87,7 @@ class Client(Base, DateTracked):
         try:
             session = db_manager.get_session()
             client = session.merge(self)
-            
+
             for key, value in kwargs.items():
                 if hasattr(client, key) and value is not None:
                     if isinstance(value, str) and not value.strip():
@@ -96,7 +96,7 @@ class Client(Base, DateTracked):
 
             session.commit()
             session.refresh(client)
-            
+
             # Mettre à jour l'instance actuelle
             for key, value in kwargs.items():
                 if hasattr(self, key) and value is not None:

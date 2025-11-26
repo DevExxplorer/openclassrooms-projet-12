@@ -1,7 +1,6 @@
 from app.models import Client
 from app.views.client import ClientView
 from rich.console import Console
-from app.database.db import db_manager
 import sentry_sdk
 
 

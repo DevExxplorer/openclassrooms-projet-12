@@ -2,9 +2,7 @@ from rich.console import Console
 from app.controllers import ContractCommands
 from app.views.event import EventView
 from app.models.event import Event
-from app.database.db import db_manager
 from app.models.contract import Contract
-from app.models.client import Client
 import sentry_sdk
 
 
@@ -24,7 +22,7 @@ class EventCommands:
 
             # Tableau des contrats signés
             signed_contracts = Contract.get_filtered_contracts(self.current_user.id, "signed")
-        
+
             if not signed_contracts:
                 self.console.print("[yellow]Aucun contrat signé disponible pour créer un événement.[/yellow]")
                 return
@@ -113,7 +111,6 @@ class EventCommands:
             })
             sentry_sdk.capture_exception(e)
 
-
     def list_events(self, role=None, filter_no_support=False):
         """Lister les événements"""
         try:
@@ -160,6 +157,7 @@ class EventCommands:
             try:
                 event = Event.get_by_id(choice_event)
             except ValueError as e:
+                sentry_sdk.capture_exception(e)
                 self.console.print(f"[red]Événement avec l'ID {choice_event} introuvable.[/red]")
                 return
 

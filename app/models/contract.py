@@ -92,11 +92,11 @@ class Contract(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            
+
             client = session.query(Client).options(
                 joinedload(Client.commercial_contact)
             ).filter(Client.id == client_id).first()
-            
+
             return client
         except Exception as e:
             sentry_sdk.capture_exception(e)
@@ -178,7 +178,7 @@ class Contract(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            
+
             if role == "commercial":
                 contract = session.query(cls).options(
                     joinedload(cls.client),
@@ -194,7 +194,7 @@ class Contract(Base, DateTracked):
                 ).filter(cls.id == contract_id).first()
             else:
                 return None
-                
+
             return contract
         except Exception as e:
             sentry_sdk.capture_exception(e)
@@ -209,19 +209,19 @@ class Contract(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            
+
             base_query = session.query(cls).options(
                 joinedload(cls.client),
                 joinedload(cls.commercial_contact)
             ).filter(cls.commercial_contact_id == user_id)
-            
+
             if filter_type == "unsigned":
                 return base_query.filter(~cls.is_signed).all()
             elif filter_type == "signed":
                 return base_query.filter(cls.is_signed).all()
             elif filter_type == "unpaid":
                 return base_query.filter(cls.remaining_amount > 0).all()
-            
+
             return base_query.all()
         except Exception as e:
             sentry_sdk.capture_exception(e)

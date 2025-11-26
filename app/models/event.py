@@ -43,10 +43,10 @@ class Event(Base, DateTracked):
         session = None
         try:
             session = db_manager.get_session()
-            
+
             # Merge l'objet dans la session courante
             event = session.merge(self)
-            
+
             # Mise à jour des attributs
             for key, value in kwargs.items():
                 if hasattr(event, key) and value is not None:
@@ -57,7 +57,7 @@ class Event(Base, DateTracked):
 
             session.commit()
             session.refresh(event)
-            
+
             # Mettre à jour l'instance actuelle
             for key, value in kwargs.items():
                 if hasattr(self, key) and value is not None:
@@ -289,7 +289,6 @@ class Event(Base, DateTracked):
                 event = base_query.filter(cls.id == event_id).first()
             else:
                 return None
-
 
             return event
         except Exception as e:

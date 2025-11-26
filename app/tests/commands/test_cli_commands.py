@@ -12,7 +12,7 @@ class TestCLI:
         """Test du CLI avec l'option --dev-init"""
         runner = CliRunner()
 
-        with patch('app.commands.cli.initialize_database') as mock_init:
+        with patch('app.controllers.cli.initialize_database') as mock_init:
             mock_init.return_value = True
 
             result = runner.invoke(main_cli, ['--dev-init'])
@@ -24,7 +24,7 @@ class TestCLI:
         """Test du CLI normal (sans options)"""
         runner = CliRunner()
 
-        with patch('app.commands.cli.main_loop') as mock_main_loop:
+        with patch('app.controllers.cli.main_loop') as mock_main_loop:
             result = runner.invoke(main_cli)
 
             assert result.exit_code == 0
@@ -34,8 +34,8 @@ class TestCLI:
 class TestInitializeDatabase:
     """Tests pour l'initialisation de la base de données"""
 
-    @patch('app.commands.cli.Initialization')
-    @patch('app.commands.cli.console')
+    @patch('app.controllers.cli.Initialization')
+    @patch('app.controllers.cli.console')
     def test_initialize_database_success(self, mock_console, mock_initialization):
         """Test initialisation réussie"""
         mock_initialization.initialize_application.return_value = {
@@ -46,8 +46,8 @@ class TestInitializeDatabase:
         assert result is True
         mock_initialization.initialize_application.assert_called_once()
 
-    @patch('app.commands.cli.Initialization')
-    @patch('app.commands.cli.console')
+    @patch('app.controllers.cli.Initialization')
+    @patch('app.controllers.cli.console')
     def test_initialize_database_with_errors(self, mock_console, mock_initialization):
         """Test initialisation avec erreurs"""
         mock_initialization.initialize_application.return_value = {
@@ -63,9 +63,9 @@ class TestInitializeDatabase:
 class TestShowMenu:
     """Tests pour le menu principal"""
 
-    @patch('app.commands.cli.MenuService')
-    @patch('app.commands.cli.AuthService')
-    @patch('app.commands.cli.console')
+    @patch('app.controllers.cli.MenuService')
+    @patch('app.controllers.cli.AuthService')
+    @patch('app.controllers.cli.console')
     def test_show_menu_invalid_user(self, mock_console, mock_auth_service, mock_menu_service):
         """Test avec utilisateur invalide"""
         # Mock de l'authentification qui échoue
@@ -78,9 +78,9 @@ class TestShowMenu:
         assert result == "continue"
         mock_auth_instance.authenticate_user.assert_called_once()
 
-    @patch('app.commands.cli.MenuService')
-    @patch('app.commands.cli.AuthService')
-    @patch('app.commands.cli.console')
+    @patch('app.controllers.cli.MenuService')
+    @patch('app.controllers.cli.AuthService')
+    @patch('app.controllers.cli.console')
     def test_show_menu_success_then_exit(self, mock_console, mock_auth_service, mock_menu_service):
         """Test avec authentification réussie puis exit"""
         # Mock de l'utilisateur
@@ -103,9 +103,9 @@ class TestShowMenu:
         mock_auth_instance.authenticate_user.assert_called_once()
         mock_menu_instance.handle_main_menu.assert_called_once_with(mock_user)
 
-    @patch('app.commands.cli.MenuService')
-    @patch('app.commands.cli.AuthService')
-    @patch('app.commands.cli.console')
+    @patch('app.controllers.cli.MenuService')
+    @patch('app.controllers.cli.AuthService')
+    @patch('app.controllers.cli.console')
     def test_show_menu_logout(self, mock_console, mock_auth_service, mock_menu_service):
         """Test avec logout"""
         # Mock de l'utilisateur
@@ -127,10 +127,10 @@ class TestShowMenu:
         assert result == "continue"
         mock_auth_instance.logout.assert_called_once()
 
-    @patch('app.commands.cli.MenuService')
-    @patch('app.commands.cli.AuthService')
-    @patch('app.commands.cli.console')
-    @patch('app.commands.cli.DIRECT_ACTIONS', {'action1': 'direct_action_1'})
+    @patch('app.controllers.cli.MenuService')
+    @patch('app.controllers.cli.AuthService')
+    @patch('app.controllers.cli.console')
+    @patch('app.controllers.cli.DIRECT_ACTIONS', {'action1': 'direct_action_1'})
     def test_show_menu_direct_action(self, mock_console, mock_auth_service, mock_menu_service):
         """Test avec action directe puis exit"""
         # Mock de l'utilisateur
@@ -160,7 +160,7 @@ class TestShowMenu:
 class TestMainLoop:
     """Tests pour la boucle principale"""
 
-    @patch('app.commands.cli.show_menu')
+    @patch('app.controllers.cli.show_menu')
     def test_main_loop_exit(self, mock_show_menu):
         """Test de la boucle principale avec exit"""
 
@@ -172,7 +172,7 @@ class TestMainLoop:
 
         mock_show_menu.assert_called_once()
 
-    @patch('app.commands.cli.show_menu')
+    @patch('app.controllers.cli.show_menu')
     def test_main_loop_continue_then_exit(self, mock_show_menu):
         """Test de la boucle principale avec continue puis exit"""
 

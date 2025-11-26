@@ -51,7 +51,7 @@ class MenuService:
 
                     # Retour au menu principal depuis le sous-menu
                     if result == "back_to_main":
-                        break
+                        continue
 
                     return result
 

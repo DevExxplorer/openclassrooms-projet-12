@@ -1,8 +1,6 @@
 from app.views.user import userView
 from app.models.user import User
 from rich.console import Console
-from app.database.db import db_manager
-from app.models.department import Department
 import sentry_sdk
 
 
